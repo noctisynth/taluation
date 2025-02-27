@@ -58,7 +58,7 @@ async def login():
 
 
 @router.post("/update")
-async def update(auth: Auth, data: Account):
+async def update_account(auth: Auth, data: Account):
     if not await verify_auth(db, auth):
         return Response("Invalid token.", data=None, success=False)
 
@@ -75,18 +75,43 @@ async def update(auth: Auth, data: Account):
     return Response("Account updated successfully.")
 
 
-@router.post("/delete")
-async def delete(auth: Auth):
+@router.post("/delete/{username}")
+async def delete_account_by_username(auth: Auth, username: str):
     if not await verify_auth(db, auth):
         return Response("Invalid token.", data=None, success=False)
 
+    account: Optional[AccountModel] = await db.query(  # type: ignore
+        "SELECT * FROM account WHERE username = $username",
+        {
+            "username": auth.username,
+        },
+    )
+    if account is None:
+        return Response("Account not found.", data=None, success=False)
+    if auth.username != username and account.type != "admin":
+        return Response(
+            "You are not allowed to delete this account.", data=None, success=False
+        )
+
+    await db.query(
+        "DELETE * FROM class WHERE teacher = $teacher",
+        {
+            "teacher": RecordID("teacher", auth.username),
+        },
+    )
+    await db.query(
+        "DELETE * FROM auth WHERE username = $username",
+        {
+            "username": auth.username,
+        },
+    )
     await db.delete(RecordID("account", auth.username))
 
     return Response("Account deleted successfully.")
 
 
 @router.get("/get/{username}")
-async def get(username: str):
+async def get_account_by_username(username: str):
     account: Optional[AccountModel] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username",
         {
