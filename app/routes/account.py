@@ -4,7 +4,7 @@ from surrealdb import RecordID
 
 from app.db import db
 from app.models import Response
-from app.models.account import Account, AccountModel, Auth
+from app.models.account import Account, AccountModel, Auth, Credentials
 from app.utils.auth import verify_auth
 
 import argon2
@@ -36,14 +36,17 @@ async def register(account: Account):
 
 
 @router.get("/login")
-async def login():
+async def login(credentials: Credentials):
     account: Optional[Account] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username",
+        {"username": credentials.username},
     )
 
     if account is None:
         return Response("Account not found.", data=None, success=False)
-    elif argon2.verify_password(account.password.encode(), account.username.encode()):
+    elif argon2.verify_password(
+        account.password.encode(), credentials.password.encode()
+    ):
         token = argon2.hash_password(account.username.encode()).decode()
         await db.create(
             "auth",
@@ -121,4 +124,4 @@ async def get_account_by_username(username: str):
     if account is None:
         return Response("Account not found.", data=None, success=False)
     else:
-        return Response("Account found.", data=account)
+        return Response("Account found.", data=account.to_raw())

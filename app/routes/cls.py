@@ -24,7 +24,7 @@ async def create_class(auth: Auth, data: Class):
             "Only teacher can create a new class.", data=None, success=False
         )
 
-    await db.create("class", data.model_dump())
+    await db.create("class", data.to_model().model_dump())
 
     return Response("Class created successfully.")
 
