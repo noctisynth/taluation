@@ -1,5 +1,5 @@
 from surrealdb import RecordID
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter
 
 from app.db import db
@@ -60,3 +60,23 @@ async def delete_evaluation_by_id(auth: Auth, id: str):
         )
     await db.delete(RecordID("evaluation", id))
     return Response("Evaluation deleted successfully.")
+
+
+@router.get("/get/{userid}")
+async def get_evaluations_by_userid(userid: str):
+    evaluation: List[EvaluationModel] = await db.query(  # type: ignore
+        "SELECT * FROM evaluation WHERE student = $student",
+        {"student": RecordID("account", userid)},
+    )
+    evaluations = [evaluation.to_raw() for evaluation in evaluation]
+    return Response("Evaluation found.", data=evaluations)
+
+
+@router.get("/get/class/{class_id}")
+async def get_evaluations_by_teacher(class_id: str):
+    evaluation: List[EvaluationModel] = await db.query(  # type: ignore
+        "SELECT * FROM evaluation WHERE cls = $class_id",
+        {"class_id": RecordID("class", class_id)},
+    )
+    evaluations = [evaluation.to_raw() for evaluation in evaluation]
+    return Response("Evaluation found.", data=evaluations)

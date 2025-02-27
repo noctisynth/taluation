@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class Evaluation(BaseModel):
+    id: Optional[str]
     user: str
     cls: str
     score: int
@@ -28,6 +29,7 @@ class EvaluationModel(BaseModel, arbitrary_types_allowed=True):
 
     def to_raw(self) -> Evaluation:
         return Evaluation(
+            id=self.id and self.id.id,
             user=self.user.id,
             cls=self.cls.id,
             score=self.score,
