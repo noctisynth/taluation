@@ -3,7 +3,7 @@ from surrealdb import RecordID
 from fastapi import APIRouter
 
 from app.db import db
-from app.models import Response
+from app.models import Record, Response
 from app.models.account import Auth
 from app.models.cls import Class, ClassModel
 from app.utils.auth import get_account, verify_auth
@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/create")
-async def create_class(auth: Auth, data: Class):
+async def create_class(auth: Auth, data: Class) -> Response[Optional[Record]]:
     if not await verify_auth(db, auth):
         return Response("Unauthorized.", data=None, success=False)
 
@@ -24,16 +24,18 @@ async def create_class(auth: Auth, data: Class):
             "Only teacher can create a new class.", data=None, success=False
         )
 
-    cls: ClassModel = await db.create("class", data.to_model().model_dump())  # type: ignore
+    cls: Optional[ClassModel] = await db.create("class", data.to_model().model_dump())  # type: ignore
+    if not cls or not cls.id:
+        return Response("Failed to create class.", data=None, success=False)
 
     return Response(
         "Class created successfully.",
-        data={"id": cls.id},
+        data=Record(id=cls.id.id),
     )
 
 
 @router.post("/update")
-async def update_class(auth: Auth, data: Class):
+async def update_class(auth: Auth, data: Class) -> Response[None]:
     if not await verify_auth(db, auth):
         return Response("Unauthorized.", data=None, success=False)
     account = await get_account(db, auth)
@@ -54,7 +56,7 @@ async def update_class(auth: Auth, data: Class):
 
 
 @router.post("/delete/{id}")
-async def delete_class(auth: Auth, id: str):
+async def delete_class(auth: Auth, id: str) -> Response[None]:
     if not await verify_auth(db, auth):
         return Response("Unauthorized.", data=None, success=False)
     account = await get_account(db, auth)
@@ -67,7 +69,7 @@ async def delete_class(auth: Auth, id: str):
 
 
 @router.get("/get/{name}")
-async def get_class_by_name(name: str):
+async def get_class_by_name(name: str) -> Response[Optional[Class]]:
     cls: Optional[ClassModel] = await db.query(
         "SELECT * FROM class WHERE name = $name",
         {"name": name},

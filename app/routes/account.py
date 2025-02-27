@@ -4,7 +4,7 @@ from surrealdb import RecordID
 
 from app.db import db
 from app.models import Response
-from app.models.account import Account, AccountModel, Auth, Credentials
+from app.models.account import Account, AccountModel, Auth, Credentials, LoginResponse
 from app.utils.auth import verify_auth
 
 import argon2
@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/register")
-async def register(account: Account):
+async def register(account: Account) -> Response[None]:
     result: List[AccountModel] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username \
             OR email = $email OR phone = $phone",
@@ -36,7 +36,7 @@ async def register(account: Account):
 
 
 @router.get("/login")
-async def login(credentials: Credentials):
+async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
     account: Optional[Account] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username",
         {"username": credentials.username},
@@ -55,13 +55,13 @@ async def login(credentials: Credentials):
                 "token": token,
             },
         )
-        return Response("Login successful.", data={"token": token})
+        return Response("Login successful.", data=LoginResponse(token=token))
     else:
         return Response("Invalid password.", data=None, success=False)
 
 
 @router.post("/update")
-async def update_account(auth: Auth, data: Account):
+async def update_account(auth: Auth, data: Account) -> Response[None]:
     if not await verify_auth(db, auth):
         return Response("Invalid token.", data=None, success=False)
 
@@ -79,7 +79,7 @@ async def update_account(auth: Auth, data: Account):
 
 
 @router.post("/delete/{username}")
-async def delete_account_by_username(auth: Auth, username: str):
+async def delete_account_by_username(auth: Auth, username: str) -> Response[None]:
     if not await verify_auth(db, auth):
         return Response("Invalid token.", data=None, success=False)
 
@@ -114,7 +114,7 @@ async def delete_account_by_username(auth: Auth, username: str):
 
 
 @router.get("/get/{username}")
-async def get_account_by_username(username: str):
+async def get_account_by_username(username: str) -> Response[Optional[Account]]:
     account: Optional[AccountModel] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username",
         {"username": username},

@@ -49,3 +49,7 @@ class Auth(BaseModel):
 class Credentials(BaseModel):
     username: str
     password: str
+
+
+class LoginResponse(BaseModel):
+    token: str
