@@ -18,7 +18,7 @@ openapi_url = "/docs"
 
 
 @app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
+async def swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url=openapi_url,
         title=app.title + " - Swagger UI",
@@ -47,11 +47,15 @@ async def redoc_html():
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await db.signin({"username": "root", "password": "root"})
-    await db.use("main", "test")
-    logger.info("Connected to database.")
-    yield
-    await db.close()
+    try:
+        await db.signin({"username": "root", "password": "root"})
+        await db.use("main", "test")
+        logger.info("Connected to database.")
+        yield
+    except Exception as e:
+        logger.error(f"Error connecting to database: {e}")
+    finally:
+        await db.close()
 
 
 app = FastAPI(lifespan=lifespan)
