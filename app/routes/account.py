@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from fastapi import APIRouter
 from surrealdb import RecordID
 
@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.post("/register")
 async def register(account: Account):
-    result: list[dict] = await db.query(  # type: ignore
+    result: List[AccountModel] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username \
             OR email = $email OR phone = $phone",
         {
