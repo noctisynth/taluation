@@ -1,5 +1,5 @@
 from surrealdb import RecordID
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel
 
 
@@ -8,6 +8,7 @@ class Account(BaseModel):
     password: str
     email: str
     phone: str
+    type: Literal["student", "teacher", "admin"]
 
 
 class AccountModel(BaseModel, arbitrary_types_allowed=True):
@@ -16,7 +17,7 @@ class AccountModel(BaseModel, arbitrary_types_allowed=True):
     password: str
     email: str
     phone: str
-
+    type: Literal["student", "teacher", "admin"]
 
 class Auth(BaseModel):
     username: str
