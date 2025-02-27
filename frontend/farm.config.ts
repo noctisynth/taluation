@@ -2,10 +2,10 @@ import { defineConfig } from '@farmfe/core';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
-  vitePlugins: [vue()],
-  compilation: {
-    output: {
-      path: '../dist'
-    }
-  }
+	vitePlugins: [vue()],
+	compilation: {
+		output: {
+			path: '../dist',
+		},
+	},
 });
