@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.logger import logger
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app import routes
@@ -24,6 +25,14 @@ app = FastAPI(
     title="Taluation",
     description="Teaching Evaluation System",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(routes.account, prefix="/account")
