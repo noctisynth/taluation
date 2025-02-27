@@ -19,6 +19,7 @@ class AccountModel(BaseModel, arbitrary_types_allowed=True):
     phone: str
     type: Literal["student", "teacher", "admin"]
 
+
 class Auth(BaseModel):
     username: str
     token: str

@@ -83,3 +83,17 @@ async def delete(auth: Auth):
     await db.delete(RecordID("account", auth.username))
 
     return Response("Account deleted successfully.")
+
+
+@router.get("/get/{username}")
+async def get(username: str):
+    account: Optional[AccountModel] = await db.query(  # type: ignore
+        "SELECT * FROM account WHERE username = $username",
+        {
+            "username": username,
+        },
+    )
+    if account is None:
+        return Response("Account not found.", data=None, success=False)
+    else:
+        return Response("Account found.", data=account)
