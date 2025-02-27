@@ -74,7 +74,7 @@ async def update_account(auth: Auth, data: Account):
     if not account.id:
         return Response("Account not found.", data=None, success=False)
 
-    await db.update(account.id, data.model_dump())
+    await db.update(account.id, data.to_model().model_dump())
     return Response("Account updated successfully.")
 
 
@@ -117,9 +117,7 @@ async def delete_account_by_username(auth: Auth, username: str):
 async def get_account_by_username(username: str):
     account: Optional[AccountModel] = await db.query(  # type: ignore
         "SELECT * FROM account WHERE username = $username",
-        {
-            "username": username,
-        },
+        {"username": username},
     )
     if account is None:
         return Response("Account not found.", data=None, success=False)

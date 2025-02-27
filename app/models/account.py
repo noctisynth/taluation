@@ -11,6 +11,16 @@ class Account(BaseModel):
     phone: str
     type: Literal["student", "teacher", "admin"]
 
+    def to_model(self):
+        return AccountModel(
+            id=None if self.id is None else RecordID("account", self.id),
+            username=self.username,
+            password=self.password,
+            email=self.email,
+            phone=self.phone,
+            type=self.type,
+        )
+
 
 class AccountModel(BaseModel, arbitrary_types_allowed=True):
     id: Optional[RecordID]
