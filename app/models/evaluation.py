@@ -12,7 +12,7 @@ class Evaluation(BaseModel):
 
     def to_model(self) -> "EvaluationModel":
         return EvaluationModel(
-            id=None,
+            id=None if self.id is None else RecordID("evaluation", self.id),
             user=RecordID("user", self.user),
             cls=RecordID("class", self.cls),
             score=self.score,

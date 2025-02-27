@@ -24,9 +24,12 @@ async def create_class(auth: Auth, data: Class):
             "Only teacher can create a new class.", data=None, success=False
         )
 
-    await db.create("class", data.to_model().model_dump())
+    cls: ClassModel = await db.create("class", data.to_model().model_dump())  # type: ignore
 
-    return Response("Class created successfully.")
+    return Response(
+        "Class created successfully.",
+        data={"id": cls.id},
+    )
 
 
 @router.post("/update")
@@ -39,10 +42,7 @@ async def update_class(auth: Auth, data: Class):
     if account.type != "teacher":
         return Response("Only teacher can update a class.", data=None, success=False)
 
-    cls: ClassModel = await db.query(
-        "SELECT * FROM class WHERE name = $name",
-        {"name": data.name},
-    )  # type: ignore
+    cls: ClassModel = await db.select(RecordID("class", data.id))  # type: ignore
     if cls is None:
         return Response("Class not found.", data=None, success=False)
 
@@ -67,7 +67,7 @@ async def delete_class(auth: Auth, id: str):
 
 
 @router.get("/get/{name}")
-async def get_class(name: str):
+async def get_class_by_name(name: str):
     cls: Optional[ClassModel] = await db.query(
         "SELECT * FROM class WHERE name = $name",
         {"name": name},
