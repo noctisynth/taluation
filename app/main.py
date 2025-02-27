@@ -37,5 +37,6 @@ app.add_middleware(
 
 app.include_router(routes.account, prefix="/account")
 app.include_router(routes.cls, prefix="/class")
+app.include_router(routes.evaluation, prefix="/evaluation")
 
 app.mount("/", StaticFiles(directory="dist", html=True), name="dist")
