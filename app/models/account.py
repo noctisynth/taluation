@@ -1,6 +1,6 @@
 from surrealdb import RecordID
-from typing import Literal, Optional
-from pydantic import BaseModel
+from typing import Literal, Optional, Union, Any, List, TypeVar, Dict
+from pydantic import BaseModel, field_validator
 
 
 class Account(BaseModel):
@@ -20,6 +20,15 @@ class Account(BaseModel):
             phone=self.phone,
             type=self.type,
         )
+    
+    @field_validator('id', mode='before')
+    @classmethod
+    def validate_id(cls, v: Any) -> Optional[str]:
+        if v is None:
+            return None
+        if hasattr(v, 'id'):
+            return v.id
+        return v
 
 
 class AccountModel(BaseModel, arbitrary_types_allowed=True):
@@ -40,6 +49,13 @@ class AccountModel(BaseModel, arbitrary_types_allowed=True):
             type=self.type,
         )
 
+    def to_response(self):
+        return AccountResponse(
+            username=self.username,
+            email=self.email,
+            phone=self.phone,
+            type=self.type
+        )
 
 class Auth(BaseModel):
     username: str
@@ -53,3 +69,18 @@ class Credentials(BaseModel):
 
 class LoginResponse(BaseModel):
     token: str
+
+
+class UpdateAccount(BaseModel):
+    username: str
+    newname: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    type: Optional[Literal["student", "teacher", "admin"]] = None
+
+
+class AccountResponse(BaseModel):
+    username: str
+    email: str
+    phone: str
+    type: Literal["student", "teacher", "admin"]

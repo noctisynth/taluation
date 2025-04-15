@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app import routes
 from app.db import db
+from app.utils.auth import AuthMiddleware
 
 
 @asynccontextmanager
@@ -33,6 +34,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    AuthMiddleware,
+    exclude_paths=["/account/login", "/account/register", "/docs", "/openapi.json", "/redoc"]
 )
 
 app.include_router(routes.account, prefix="/account")

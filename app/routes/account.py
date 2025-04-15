@@ -1,11 +1,12 @@
 from typing import List, Optional
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from httpx import get
 from surrealdb import RecordID
 
 from app.db import db
 from app.models import Response
-from app.models.account import Account, AccountModel, Auth, Credentials, LoginResponse
-from app.utils.auth import verify_auth
+from app.models.account import Account, AccountModel, Auth, Credentials, LoginResponse, UpdateAccount, AccountResponse
+from app.repositories.account import AccountRepository
 
 import argon2
 
@@ -14,39 +15,29 @@ router = APIRouter()
 
 @router.post("/register")
 async def register(account: Account) -> Response[None]:
-    result: List[AccountModel] = await db.query(  # type: ignore
-        "SELECT * FROM account WHERE username = $username \
-            OR email = $email OR phone = $phone",
-        {
-            "username": account.username,
-            "email": account.email,
-            "phone": account.phone,
-        },
-    )
-
-    if len(result) > 0:
+    if await AccountRepository.account_exists(db, account):
         return Response("Account already exists.", data=None, success=False)
     else:
         account.password = argon2.hash_password(
             account.password.encode(), salt=account.username.encode()
         ).decode()
-        await db.create("account", account.model_dump())
+        account_data = account.model_dump(exclude={"id"})
+        await db.create("account", account_data)
 
     return Response("Account created successfully.")
 
 
-@router.get("/login")
+@router.post("/login")
 async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
-    account: Optional[Account] = await db.query(  # type: ignore
-        "SELECT * FROM account WHERE username = $username",
-        {"username": credentials.username},
-    )
+    account = await AccountRepository.get_account_by_name(db, credentials.username)
 
     if account is None:
         return Response("Account not found.", data=None, success=False)
-    elif argon2.verify_password(
+
+    if argon2.verify_password(
         account.password.encode(), credentials.password.encode()
     ):
+        await AccountRepository.delete_token(db, account.username)
         token = argon2.hash_password(account.username.encode()).decode()
         await db.create(
             "auth",
@@ -60,66 +51,76 @@ async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
         return Response("Invalid password.", data=None, success=False)
 
 
-@router.post("/update")
-async def update_account(auth: Auth, data: Account) -> Response[None]:
-    if not await verify_auth(db, auth):
-        return Response("Invalid token.", data=None, success=False)
+@router.patch("")
+async def update_account(update_data: UpdateAccount, request: Request) -> Response[None]:
+    auth = request.state.auth
 
-    account: AccountModel = await db.query(  # type: ignore
-        "SELECT * FROM account WHERE username = $username",
-        {
-            "username": auth.username,
-        },
-    )
-    if not account.id:
-        return Response("Account not found.", data=None, success=False)
+    current_user = await AccountRepository.get_account_by_name(db, auth.username)
+    if current_user is None:
+        return Response("Current user account not found.", data=None, success=False)
+    
+    target_account = await AccountRepository.get_account_by_name(db, update_data.username)
 
-    await db.update(account.id, data.to_model().model_dump())
+    if target_account is None or target_account.id is None:
+        return Response("Target account not found.", data=None, success=False)
+
+    if update_data.type is not None and current_user.type != "admin":
+        return Response("Permission denied. Only admin can modify account type.", data=None, success=False)
+
+    if auth.username != update_data.username and current_user.type != "admin":
+        return Response(
+            "Permission denied. Only admin can update other accounts.", data=None, success=False
+        )
+    
+    old_name = target_account.username
+
+    if update_data.newname is not None:
+        target_account.username = update_data.newname
+    if update_data.email is not None:
+        target_account.email = update_data.email
+    if update_data.phone is not None:
+        target_account.phone = update_data.phone
+    if update_data.type is not None:
+        target_account.type = update_data.type
+    
+    await db.update(target_account.id, target_account.model_dump())
+    await AccountRepository.delete_token(db, old_name)
     return Response("Account updated successfully.")
 
 
-@router.post("/delete/{username}")
-async def delete_account_by_username(auth: Auth, username: str) -> Response[None]:
-    if not await verify_auth(db, auth):
-        return Response("Invalid token.", data=None, success=False)
+@router.delete("")
+async def delete_account_by_username(username: str, request: Request) -> Response[None]:
+    auth = request.state.auth
 
-    account: Optional[AccountModel] = await db.query(  # type: ignore
-        "SELECT * FROM account WHERE username = $username",
-        {
-            "username": auth.username,
-        },
-    )
-    if account is None:
-        return Response("Account not found.", data=None, success=False)
-    if auth.username != username and account.type != "admin":
+    current_user = await AccountRepository.get_account_by_name(db, auth.username)
+    if current_user is None:
+        return Response("Current user account not found.", data=None, success=False)
+    
+    if auth.username != username and current_user.type != "admin":
         return Response(
-            "You are not allowed to delete this account.", data=None, success=False
+            "Permission denied. Only admin can delete other accounts.", data=None, success=False
         )
 
-    await db.query(
-        "DELETE * FROM class WHERE teacher = $teacher",
-        {
-            "teacher": RecordID("teacher", auth.username),
-        },
-    )
-    await db.query(
-        "DELETE * FROM auth WHERE username = $username",
-        {
-            "username": auth.username,
-        },
-    )
-    await db.delete(RecordID("account", auth.username))
+    if not await AccountRepository.delete_account(db, username):
+        return Response("Failed to delete account.", data=None, success=False)
 
     return Response("Account deleted successfully.")
 
 
-@router.get("/get/{username}")
-async def get_account_by_username(username: str) -> Response[Optional[Account]]:
-    account: Optional[AccountModel] = await db.query(  # type: ignore
-        "SELECT * FROM account WHERE username = $username",
-        {"username": username},
-    )
+@router.get("")
+async def get_account_by_username(username: str, request: Request) -> Response[Optional[AccountResponse]]:
+    auth = request.state.auth
+    
+    current_user = await AccountRepository.get_account_by_name(db, auth.username)
+    if current_user is None:
+        return Response("Current user not found.", data=None, success=False)
+    
+    if current_user.type != "admin" and auth.username != username:
+        return Response("Permission denied. You can only access your own account.", data=None, success=False)
+    
+    account = await AccountRepository.get_account_by_name(db, username)
+    
     if account is None:
         return Response("Account not found.", data=None, success=False)
     else:
-        return Response("Account found.", data=account.to_raw())
+        return Response("Account found.", data=account.to_response())
