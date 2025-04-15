@@ -1,11 +1,9 @@
-from typing import List, Optional
+from typing import Optional
 from fastapi import APIRouter, Request
-from httpx import get
-from surrealdb import RecordID
-
+from argon2.exceptions import VerifyMismatchError
 from app.db import db
 from app.models import Response
-from app.models.account import Account, AccountModel, Auth, Credentials, LoginResponse, UpdateAccount, AccountResponse
+from app.models.account import Account, Credentials, LoginResponse, UpdateAccount, AccountResponse
 from app.repositories.account import AccountRepository
 
 import argon2
@@ -34,21 +32,25 @@ async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
     if account is None:
         return Response("Account not found.", data=None, success=False)
 
-    if argon2.verify_password(
-        account.password.encode(), credentials.password.encode()
-    ):
-        await AccountRepository.delete_token(db, account.username)
-        token = argon2.hash_password(account.username.encode()).decode()
-        await db.create(
-            "auth",
-            {
-                "username": account.username,
-                "token": token,
-            },
-        )
-        return Response("Login successful.", data=LoginResponse(token=token))
-    else:
+    try:
+        if argon2.verify_password(
+            account.password.encode(), credentials.password.encode()
+        ):
+            await AccountRepository.delete_token(db, account.username)
+            token = argon2.hash_password(account.username.encode()).decode()
+            await db.create(
+                "auth",
+                {
+                    "username": account.username,
+                    "token": token,
+                },
+            )
+            return Response("Login successful.", data=LoginResponse(token=token))
+        else:
+            return Response("Invalid password.", data=None, success=False)
+    except VerifyMismatchError:
         return Response("Invalid password.", data=None, success=False)
+
 
 
 @router.get("/logout")
@@ -114,17 +116,17 @@ async def delete_account_by_username(username: str, request: Request) -> Respons
 
 
 @router.get("")
-async def get_account_by_username(username: str, request: Request) -> Response[Optional[AccountResponse]]:
+async def get_account_by_name(name: str, request: Request) -> Response[Optional[AccountResponse]]:
     auth = request.state.auth
     
     current_user = await AccountRepository.get_account_by_name(db, auth.username)
     if current_user is None:
         return Response("Current user not found.", data=None, success=False)
     
-    if current_user.type != "admin" and auth.username != username:
+    if current_user.type != "admin" and auth.username != name:
         return Response("Permission denied. You can only access your own account.", data=None, success=False)
     
-    account = await AccountRepository.get_account_by_name(db, username)
+    account = await AccountRepository.get_account_by_name(db, name)
     
     if account is None:
         return Response("Account not found.", data=None, success=False)
