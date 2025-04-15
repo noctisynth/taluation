@@ -51,6 +51,12 @@ async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
         return Response("Invalid password.", data=None, success=False)
 
 
+@router.get("/logout")
+async def logout(request: Request) -> Response[None]:
+    auth = request.state.auth
+    await AccountRepository.delete_token(db, auth.username)
+    return Response("Logout successful.")
+
 @router.patch("")
 async def update_account(update_data: UpdateAccount, request: Request) -> Response[None]:
     auth = request.state.auth
