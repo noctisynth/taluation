@@ -21,6 +21,7 @@ class Class(BaseModel):
     
     def to_list(self) -> "DisplayClass":
         return DisplayClass(
+            id=self.id and self.id,
             name=self.name,
             teacher=self.teacher,
             category=self.category,
@@ -95,6 +96,7 @@ class GetClass(BaseModel):
     
 
 class DisplayClass(BaseModel):
+    id: Optional[str] = None
     name: str
     teacher: str
     category: str

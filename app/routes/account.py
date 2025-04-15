@@ -110,6 +110,7 @@ async def update_account(update_data: UpdateAccount, request: Request) -> Respon
 
     if update_data.newname is not None:
         target_account.username = update_data.newname
+        await AccountRepository.delete_token(db, old_name)
     if update_data.email is not None:
         target_account.email = update_data.email
     if update_data.phone is not None:
@@ -118,7 +119,6 @@ async def update_account(update_data: UpdateAccount, request: Request) -> Respon
         target_account.type = update_data.type
     
     await db.update(target_account.id, target_account.model_dump())
-    await AccountRepository.delete_token(db, old_name)
     return Response("Account updated successfully.")
 
 
@@ -142,19 +142,18 @@ async def delete_account_by_username(username: str, request: Request) -> Respons
 
 
 @router.get("")
-async def get_account_by_name(name: str, request: Request) -> Response[Optional[AccountResponse]]:
+async def get_account(name: str, request: Request) -> Response[Optional[AccountResponse]]:
     auth = request.state.auth
     
     current_user = await AccountRepository.get_account_by_name(db, auth.username)
     if current_user is None:
-        return Response("Current user not found.", data=None, success=False)
-    
-    if current_user.type != "admin" and auth.username != name:
-        return Response("Permission denied. You can only access your own account.", data=None, success=False)
+        return Response("Current user not found.", data=None, success=False) 
     
     account = await AccountRepository.get_account_by_name(db, name)
     
-    if account is None:
+    if account is None or account.id is None:
         return Response("Account not found.", data=None, success=False)
+    elif current_user.type != "admin" and auth.username != name:
+        return Response("Permission denied. You can only access the user ID.", data=account.to_response().retain_id_only(), success=True)
     else:
         return Response("Account found.", data=account.to_response())

@@ -39,6 +39,7 @@ class AccountRepository:
         )
         if not accounts or len(accounts) == 0:
             return None
+        print(accounts[0])
         return Account(**accounts[0]).to_model()
 
     @staticmethod

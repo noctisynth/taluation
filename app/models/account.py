@@ -51,6 +51,7 @@ class AccountModel(BaseModel, arbitrary_types_allowed=True):
 
     def to_response(self):
         return AccountResponse(
+            id=self.id and self.id.id,
             username=self.username,
             email=self.email,
             phone=self.phone,
@@ -85,7 +86,17 @@ class UpdateAccount(BaseModel):
 
 
 class AccountResponse(BaseModel):
-    username: str
-    email: str
-    phone: str
-    type: Literal["student", "teacher", "admin"]
+    id: Optional[str] = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    type: Optional[Literal["student", "teacher", "admin"]] = None
+
+    def retain_id_only(self):
+        return AccountResponse(
+            id=self.id,
+            username=None,
+            email=None,
+            phone=None,
+            type=None
+        )
