@@ -34,7 +34,6 @@ request.interceptors.request.use((config) => {
                 },
                 data: originalData
             };
-            console.log(config.data);
         }
     }
     return config;
