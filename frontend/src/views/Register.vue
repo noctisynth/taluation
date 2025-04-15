@@ -1,6 +1,6 @@
 <template>
 <div id="register-container" class="auth-container">
-    <ErrorBanner :message="errorMessage" v-model:show="showError" :duration="5000" />
+    <Banner :message="errorMessage" v-model:show="showError" :duration="5000" :type="BannerType.Error" />
     <div class="auth-card-wrapper">
         <div class="logo-area">
             <h1>评教系统</h1>
@@ -94,7 +94,8 @@ import { Form, FormSubmitEvent } from '@primevue/forms';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
-import ErrorBanner from '@/components/ErrorBanner.vue';
+import Banner from '@/components/Banner.vue';
+import { BannerType } from '@/components/Banner.vue';
 import Message from 'primevue/message';
 
 import request from '@/utils/request';

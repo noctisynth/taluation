@@ -24,7 +24,7 @@ request.interceptors.request.use((config) => {
                 username,
                 token
             };
-        } else if (config.method === 'post' && !isAuthRequest) {
+        } else if (!isAuthRequest) {
             const originalData = config.data || {};
             
             config.data = {

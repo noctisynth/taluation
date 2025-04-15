@@ -1,6 +1,6 @@
 <template>
 <div id="login-container" class="auth-container">
-    <ErrorBanner :message="errorMessage" v-model:show="showError" :duration="5000" />
+    <Banner :message="errorMessage" v-model:show="showError" :duration="5000" :type="BannerType.Error" />
     <div class="auth-card-wrapper">
         <div class="logo-area">
             <h1>评教系统</h1>
@@ -54,8 +54,8 @@ import { ref } from 'vue';
 import { RouterLink } from 'vue-router';
 
 import request from '@/utils/request';
-import ErrorBanner from '@/components/ErrorBanner.vue';
-
+import Banner from '@/components/Banner.vue';
+import { BannerType } from '@/components/Banner.vue';
 import router from '@/router';
 
 const logindata = {
@@ -75,7 +75,6 @@ function login(form: FormSubmitEvent<Record<string, any>>) {
             localStorage.setItem('username', data.username);
             localStorage.setItem('token', res.data.data.token);
             router.push('/');
-            window.dispatchEvent(new Event('login-success'));
         } else {
             errorMessage.value = res.data.message || '登录失败';
             showError.value = true;

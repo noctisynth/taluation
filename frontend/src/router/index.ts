@@ -1,37 +1,33 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import Home from '@/views/Home.vue';
-import Login from '@/views/Login.vue';
-import Register from '@/views/Register.vue';
-// import ClassManagement from '@/views/panels/ClassManagement.vue';
-// import EvaluationManagement from '@/views/panels/EvaluationManagement.vue';
-// import UserManagement from '@/views/panels/UserManagement.vue';
-
+import Layout from '@/components/Layout.vue';
 const routes = [
     {
         path: '/',
-        component: Home
+        component: Layout,
+        children: [
+            {
+                path: '/home',
+                component: () => import('@/views/Home.vue')
+            },
+            {
+                path: '/change-password',
+                component: () => import('@/views/common/ChangePassword.vue')
+            },
+            {
+                path: '/profile',
+                component: () => import('@/views/common/Profile.vue')
+            }
+        ]
     },
     {
         path: '/login',
-        component: Login
+        component: () => import('@/views/Login.vue'),
     },
     {
         path: '/register',
-        component: Register
-    },
-    // {
-    //     path: '/classes',
-    //     component: ClassManagement
-    // },
-    // {
-    //     path: '/evaluations',
-    //     component: EvaluationManagement
-    // },
-    // {
-    //     path: '/users',
-    //     component: UserManagement
-    // }
+        component: () => import('@/views/Register.vue'),
+    }
 ];
 
 const router = createRouter({
