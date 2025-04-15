@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request
 from argon2.exceptions import VerifyMismatchError
 from app.db import db
 from app.models import Response
-from app.models.account import Account, Credentials, LoginResponse, UpdateAccount, AccountResponse
+from app.models.account import Account, Credentials, LoginResponse, UpdateAccount, AccountResponse, ChangePassword
 from app.repositories.account import AccountRepository
 
 import argon2
@@ -16,6 +16,8 @@ async def register(account: Account) -> Response[None]:
     if await AccountRepository.account_exists(db, account):
         return Response("Account already exists.", data=None, success=False)
     else:
+        if len(account.password) < 8:
+            return Response("Password must be at least 8 characters long.", data=None, success=False)
         account.password = argon2.hash_password(
             account.password.encode(), salt=account.username.encode()
         ).decode()
@@ -52,12 +54,36 @@ async def login(credentials: Credentials) -> Response[Optional[LoginResponse]]:
         return Response("Invalid password.", data=None, success=False)
 
 
-
 @router.get("/logout")
 async def logout(request: Request) -> Response[None]:
     auth = request.state.auth
     await AccountRepository.delete_token(db, auth.username)
     return Response("Logout successful.")
+
+
+@router.post("/change-password")
+async def change_password(change_password: ChangePassword, request: Request) -> Response[None]:
+    auth = request.state.auth
+    account = await AccountRepository.get_account_by_name(db, auth.username)
+    if account is None or account.id is None:
+        return Response("Account not found.", data=None, success=False)
+    
+    if len(change_password.newpassword) < 8:
+        return Response("Password must be at least 8 characters long.", data=None, success=False)
+        
+    try:
+        if argon2.verify_password(account.password.encode(), change_password.oldpassword.encode()):
+            await AccountRepository.delete_token(db, account.username)
+            account.password = argon2.hash_password(
+                change_password.newpassword.encode(), salt=account.username.encode()
+            ).decode()
+            await db.update(account.id, account.model_dump())
+            return Response("Password changed successfully.")
+        else:
+            return Response("Invalid old password.", data=None, success=False)
+    except VerifyMismatchError:
+        return Response("Invalid old password.", data=None, success=False)
+
 
 @router.patch("")
 async def update_account(update_data: UpdateAccount, request: Request) -> Response[None]:

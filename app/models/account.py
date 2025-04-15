@@ -71,6 +71,11 @@ class LoginResponse(BaseModel):
     token: str
 
 
+class ChangePassword(BaseModel):
+    oldpassword: str
+    newpassword: str
+
+
 class UpdateAccount(BaseModel):
     username: str
     newname: Optional[str] = None
