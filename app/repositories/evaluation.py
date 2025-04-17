@@ -26,6 +26,27 @@ class EvaluationRepository:
         return result is not None
     
     @staticmethod
+    async def get_evaluations(db: AsyncWsSurrealConnection) -> Optional[List[EvaluationModel]]:
+        result: Optional[List[dict]] = await db.query(  # type: ignore
+            "SELECT * FROM evaluation",
+        )
+        
+        if result is None:
+            return None
+        elif type(result) == list:
+            return [EvaluationModel(**item) for item in result]
+        
+        return None
+
+    @staticmethod
+    async def delete_evaluations_by_cls_id(db: AsyncWsSurrealConnection, cls: RecordID) -> bool:
+        result = await db.query(
+            "DELETE FROM evaluation WHERE cls = $cls",
+            {"cls": cls}
+        )
+        return result is not None
+    
+    @staticmethod
     async def get_evaluations_by_user_id_and_cls_id(db: AsyncWsSurrealConnection, user: RecordID, cls: RecordID) -> Optional[EvaluationModel]:
         result = await db.query(
             "SELECT * FROM evaluation WHERE user = $user AND cls = $cls",
@@ -60,7 +81,7 @@ class EvaluationRepository:
     @staticmethod
     async def to_display(db: AsyncWsSurrealConnection, evaluation_model: EvaluationModel) -> Evaluation:
         evaluation = evaluation_model.to_raw()
-
+        
         account = await AccountRepository.get_account_by_id(db, evaluation.user)
         if account is not None:
             evaluation.user = account.username

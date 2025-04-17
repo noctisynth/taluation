@@ -31,17 +31,22 @@ class Class(BaseModel):
     @field_validator('teacher', mode='before')
     @classmethod
     def validate_teacher(cls, v: Any) -> str:
+        if isinstance(v, str):
+            return v
         if hasattr(v, 'id'):
-            return v.id
-        return v
+            return str(v.id)
+        return str(v)
     
     @field_validator('id', mode='before')
     @classmethod
     def validate_id(cls, v: Any) -> Optional[str]:
         if v is None:
             return None
+        if isinstance(v, str):
+            return v
         if hasattr(v, 'id'):
-            return v.id
+            return str(v.id)
+        return str(v)
 
 
 class ClassModel(BaseModel, arbitrary_types_allowed=True):
@@ -93,7 +98,7 @@ class UpdateClass(BaseModel):
 class GetClass(BaseModel):
     id: Optional[str] = None
     name: Optional[str] = None
-    
+    teacher: Optional[str] = None
 
 class DisplayClass(BaseModel):
     id: Optional[str] = None

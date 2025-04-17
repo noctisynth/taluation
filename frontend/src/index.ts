@@ -7,10 +7,21 @@ import 'primeflex/primeflex.scss';
 import 'primeicons/primeicons.css'
 import './index.scss';
 
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import { BarChart } from "echarts/charts";
+import { GridComponent, TooltipComponent, TitleComponent } from "echarts/components";
 
 import App from './App.vue';
-
 import router from './router';
+
+use([
+    CanvasRenderer,
+    BarChart,
+    GridComponent,
+    TooltipComponent,
+    TitleComponent
+]);
 
 const app = createApp(App);
 app.use(PrimeVue, {

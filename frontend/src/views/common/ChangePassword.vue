@@ -68,7 +68,7 @@
 <script setup lang="ts">
 import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
-import auth from '@/utils/api';
+import { changePassword, getEvaluations, logout } from '@/utils/api';
 import { ref } from 'vue';
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
@@ -115,12 +115,12 @@ const resolver = ref(zodResolver(
 
 function handleSubmit(form: FormSubmitEvent<Record<string, string>>) {
     const data = form.values as typeof formData;
-    auth.changePassword(data.newpassword, data.oldpassword).then(res => {
+    changePassword(data.newpassword, data.oldpassword).then(res => {
         if (res.success) {
             bannerInfo.value.message = '密码修改成功';
             bannerInfo.value.type = BannerType.Success;
             bannerInfo.value.show = true;
-            auth.logout(false);
+            logout(false);
         } else {
             bannerInfo.value.message = res.message;
             bannerInfo.value.type = BannerType.Error;
@@ -136,6 +136,7 @@ function handleSubmit(form: FormSubmitEvent<Record<string, string>>) {
 function goBack() {
     router.push('/profile');
 }
+
 
 </script>
 

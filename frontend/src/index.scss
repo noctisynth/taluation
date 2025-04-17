@@ -99,6 +99,18 @@ html, body {
   }
 }
 
+// 通用标签样式
+.general-tag {
+  display: inline-block;
+  background: linear-gradient(to right, #60a5fa, #3b82f6);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
+}
 
 /* 
  * 认证页面样式 (登录/注册)

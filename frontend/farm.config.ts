@@ -3,7 +3,9 @@ import vue from "unplugin-vue/rollup";
 import path from "node:path";
 
 export default defineConfig({
-	vitePlugins: [vue()],
+	vitePlugins: [
+		vue(),
+	],
 	compilation: {
 		output: {
 			path: "../dist",

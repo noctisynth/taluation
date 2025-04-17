@@ -7,6 +7,10 @@ const routes = [
         component: Layout,
         children: [
             {
+                path: '/',
+                redirect: '/home'
+            },
+            {
                 path: '/home',
                 component: () => import('@/views/Home.vue')
             },
@@ -17,6 +21,30 @@ const routes = [
             {
                 path: '/profile',
                 component: () => import('@/views/common/Profile.vue')
+            },
+            {
+                path: '/courses',
+                component: () => import('@/views/common/Courses.vue')
+            },
+            {
+                path: '/my-evaluations',
+                component: () => import('@/views/student/MyEvaluations.vue')
+            },
+            {
+                path: '/my-courses',
+                component: () => import('@/views/teacher/MyCourses.vue')
+            },
+            {
+                path: '/user-management',
+                component: () => import('@/views/admin/UserManagement.vue')
+            },
+            {
+                path: '/evaluation-management',
+                component: () => import('@/views/admin/EvaluationManagement.vue')
+            },
+            {
+                path: '/course-management',
+                component: () => import('@/views/admin/CourseManagement.vue')
             }
         ]
     },

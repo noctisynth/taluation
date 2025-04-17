@@ -7,7 +7,7 @@ from app.models import Record, Response
 from app.models.cls import CreateClass, GetClass, UpdateClass, DeleteClass, DisplayClass
 from app.repositories.account import AccountRepository
 from app.repositories.cls import ClassRepository
-
+from app.repositories.evaluation import EvaluationRepository
 router = APIRouter()
 
 
@@ -122,7 +122,8 @@ async def delete_class(request: Request, delete_data: DeleteClass = Depends()) -
 
         if str(cls_model.teacher) != str(account.id.id):
             return Response("You can only delete your own class.", data=None, success=False)
-            
+    
+    await EvaluationRepository.delete_evaluations_by_cls_id(db, RecordID("class", cls_model.id))
     await ClassRepository.delete_class_by_id(db, cls_model.id)
     return Response("Class deleted successfully.")
 
@@ -137,6 +138,11 @@ async def get_classes(get_class: GetClass = Depends()) -> Response[List[DisplayC
     elif get_class.name is not None:
         cls = await ClassRepository.get_class_by_name(db, get_class.name)
         classes = [cls] if cls else None
+    elif get_class.teacher is not None:
+        account = await AccountRepository.get_account_by_name(db, get_class.teacher)
+        if account is None or account.id is None:
+            return Response("Teacher not found.", data=None, success=False)
+        classes = await ClassRepository.get_classes_by_teacher(db, account.id)
     else:
         classes = await ClassRepository.get_classes(db)
     

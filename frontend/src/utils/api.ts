@@ -1,8 +1,7 @@
 import router from "@/router";
 import request from "./request";
 
-
-function logout(needRequest: boolean = true) {  
+export function logout(needRequest: boolean = true) {  
     const token = localStorage.getItem('token');
     const username = localStorage.getItem('username');
     
@@ -25,7 +24,7 @@ function logout(needRequest: boolean = true) {
     localStorage.removeItem('username');
 }
 
-async function changePassword(newpassword: string, oldpassword: string) {
+export async function changePassword(newpassword: string, oldpassword: string) {
     try {
         const res = await request.post('/account/change-password', {
             newpassword,
@@ -37,7 +36,7 @@ async function changePassword(newpassword: string, oldpassword: string) {
     }
 }
 
-async function getProfile(username?: string) {
+export async function getProfile(username?: string) {
     try {
         const res = await request.get('/account', {
             params: {
@@ -50,11 +49,12 @@ async function getProfile(username?: string) {
     }
 }
 
-async function updateProfile(data: {
+export async function updateProfile(data: {
     username: string;
     newname?: string;
     email?: string;
     phone?: string;
+    type?: string;
 }) {
     try {
         const res = await request.patch('/account', data);
@@ -65,9 +65,62 @@ async function updateProfile(data: {
 }
 
 
-async function getClasses(data: {
+export async function getUsers() {
+    try {
+        const res = await request.get('/account/users');
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
+
+export async function addClass(data: {
+    name: string;
+    teacher: string;
+    description: string;
+    category: string;
+}) {
+    try {
+        const res = await request.put('/class', data);
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
+
+export async function deleteClass(data: {
     id?: string;
-    cls?: string;
+    name?: string;
+}) {
+    try {
+        const res = await request.delete('/class', {
+            params: data
+        });
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
+
+export async function updateClass(data: {
+    name: string;
+    newname?: string;
+    teacher?: string;
+    description?: string;
+    category?: string;
+}) {
+    try {
+        const res = await request.patch('/class', data);
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
+
+export async function getClasses(data: {
+    id?: string;
+    name?: string;
+    teacher?: string;
 }) {
     try {
         const res = await request.get('/class', {
@@ -79,36 +132,52 @@ async function getClasses(data: {
     }
 }
 
-async function getEvaluations(data: {
-    id?: string;
-    class_id?: string;
-    student_id?: string;
-    class_name?: string;
-    student_name?: string;
+export async function addEvaluation(data: {
+    cls: string;
+    score: number;
+    comment: string;
 }) {
     try {
-        if (data.student_name !== undefined) {
-            const user_res = await getProfile(data.student_name);
-            if (!user_res.success) {
-                return user_res;
-            }
-            data.student_id = user_res.data.id;
-        }
+        const res = await request.put('/evaluation', {
+            cls: data.cls,
+            score: data.score,
+            comment: data.comment
+        });
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
 
-        if (data.class_name) {
-            const cls_res = await getClasses({cls: data.class_name});
-            if (!cls_res.success) {
-                return cls_res;
-            }
-            data.class_id = cls_res.data.id;
-        }
+export async function getEvaluationStats(data: {
+    class_id?: string;
+    class_name?: string;
+}) {
+    try {
+        const res = await request.get('/evaluation/stats', {
+            params: data
+        });
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
 
-    
+export async function getEvaluations(data: {
+    id?: string;
+    user_id?: string;
+    class_id?: string;
+    user_name?: string;
+    class_name?: string;
+}) {
+    try {
         const res = await request.get('/evaluation', {
             params: {
                 id: data.id,
-                cls: data.class_id,
-                user: data.student_id
+                user_id: data.user_id,
+                class_id: data.class_id,
+                user_name: data.user_name,
+                class_name: data.class_name
             }
         });
         return res.data;
@@ -117,12 +186,28 @@ async function getEvaluations(data: {
     }
 }
 
+export async function deleteEvaluation(id: string) {
+    try {
+        const res = await request.delete('/evaluation', {
+            params: {
+                id
+            }
+        });
+        return res.data;
+    } catch (error) {
+        return error;
+    }
+}
 
-export default {
-    logout,
-    changePassword,
-    getProfile,
-    updateProfile,
-    getClasses,
-    getEvaluations
+export async function deleteUser(username: string) {
+    try {
+        const res = await request.delete('/account', {
+            params: {
+                username
+            }
+        });
+        return res.data;
+    } catch (error) {
+        return error;
+    }
 }

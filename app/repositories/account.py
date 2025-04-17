@@ -28,6 +28,16 @@ class AccountRepository:
         return len(accounts) > 0
 
     @staticmethod
+    async def get_non_admin_accounts(db: AsyncWsSurrealConnection) -> List[AccountModel]:
+        accounts: List[dict] = await db.query(  # type: ignore
+            "SELECT * FROM account where type != 'admin'",
+        )
+
+        if not accounts or len(accounts) == 0:
+            return []
+        return [Account(**account).to_model() for account in accounts]
+
+    @staticmethod
     async def get_account_by_name(
         db: AsyncWsSurrealConnection, username: str
     ) -> Optional[AccountModel]:
@@ -39,7 +49,6 @@ class AccountRepository:
         )
         if not accounts or len(accounts) == 0:
             return None
-        print(accounts[0])
         return Account(**accounts[0]).to_model()
 
     @staticmethod

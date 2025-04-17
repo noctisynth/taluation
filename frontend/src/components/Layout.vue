@@ -11,9 +11,81 @@
             <i class="pi pi-list"></i>
             <span>课程列表</span>
           </router-link>
-          <router-link to="/evaluations" class="menu-item">
+          <router-link to="/my-evaluations" class="menu-item">
             <i class="pi pi-comment"></i>
             <span>我的评价</span>
+          </router-link>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">个人中心</div>
+          <router-link to="/profile" class="menu-item">
+            <i class="pi pi-user"></i>
+            <span>个人信息</span>
+          </router-link>
+          <router-link to="/change-password" class="menu-item">
+            <i class="pi pi-lock"></i>
+            <span>修改密码</span>
+          </router-link>
+        </div>
+      </div>
+    </aside>
+    <aside class="sidebar" v-if="type === 'teacher'">
+      <div class="sidebar-header">
+        <h3>教师系统</h3>
+      </div>
+      <div class="sidebar-menu">
+        <div class="menu-group">
+          <div class="menu-title">课程管理</div>
+          <router-link to="/courses" class="menu-item">
+            <i class="pi pi-list"></i>
+            <span>课程列表</span>
+          </router-link>
+          <router-link to="/my-courses" class="menu-item">
+            <i class="pi pi-book"></i>
+            <span>我的课程</span>
+          </router-link>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">个人中心</div>
+          <router-link to="/profile" class="menu-item">
+            <i class="pi pi-user"></i>
+            <span>个人信息</span>
+          </router-link>
+          <router-link to="/change-password" class="menu-item">
+            <i class="pi pi-lock"></i>
+            <span>修改密码</span>
+          </router-link>
+        </div>
+      </div>
+    </aside>
+    <aside class="sidebar" v-if="type === 'admin'">
+      <div class="sidebar-header">
+        <h3>管理员系统</h3>
+      </div>
+      <div class="sidebar-menu">
+        <div class="menu-group">
+          <div class="menu-title">用户管理</div>
+          <router-link to="/user-management" class="menu-item">
+            <i class="pi pi-users"></i>
+            <span>用户列表</span>
+          </router-link>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">评价管理</div>
+          <router-link to="/evaluation-management" class="menu-item">
+            <i class="pi pi-comment"></i>
+            <span>评价管理</span>
+          </router-link>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">课程管理</div>
+          <router-link to="/courses" class="menu-item">
+            <i class="pi pi-list"></i>
+            <span>课程列表</span>
+          </router-link>
+          <router-link to="/course-management" class="menu-item">
+            <i class="pi pi-cog"></i>
+            <span>课程管理</span>
           </router-link>
         </div>
         <div class="menu-group">
@@ -32,11 +104,8 @@
     <div class="main-content">
       <nav class="nav-bar">
         <div>
-          <router-link to="/home">首页</router-link>
-          <router-link to="/about">关于</router-link>
         </div>
-        
-        <button @click="logout" class="logout-button" title="退出登录">
+        <button @click="handleLogout" class="logout-button" title="退出登录">
             <i class="pi pi-sign-out"></i>
         </button>
       </nav>
@@ -48,32 +117,38 @@
 </template>
   
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import request from '@/utils/request';
-import auth from '@/utils/api';
+import { logout } from '@/utils/api';
 
-const type = ref('student'); // 默认设置为学生类型，方便开发
+const type = ref('student');
 const name = localStorage.getItem('username');
 
-request.get('/account', {
-  params: {
-    name
-  }
-}).then(res => {
-  if (res.data.success) {
-    type.value = res.data.data.type;
-  } else {
-    auth.logout();
-    type.value = 'none';
-  }
-}).catch(_ => {
-  auth.logout();
-  type.value = 'none';
-});
+const handleLogout = () => logout();
 
-const logout = () => {
-  auth.logout();
-};
+onMounted(() => {
+  const userType = localStorage.getItem('user_type');
+  if (userType) {
+    type.value = userType;
+  } else {
+    request.get('/account', {
+      params: {
+        name
+      }
+    }).then(res => {
+      if (res.data.success) {
+        type.value = res.data.data.type;
+        localStorage.setItem('user_type', type.value);
+      } else {
+        logout();
+        type.value = 'none';
+      }
+    }).catch(_ => {
+      logout();
+      type.value = 'none';
+    });
+  }
+});
 </script>
 
 <style scoped lang="scss">

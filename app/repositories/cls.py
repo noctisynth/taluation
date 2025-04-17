@@ -44,6 +44,14 @@ class ClassRepository:
         return Class(**classes[0])
     
     @staticmethod
+    async def get_classes_by_teacher(db: AsyncWsSurrealConnection, teacher_id: RecordID) -> List[Class]:
+        classes: List[dict] = await db.query(  # type: ignore
+            "SELECT * FROM class WHERE teacher = $teacher",
+            {"teacher": teacher_id},
+        )
+        return [Class(**cls) for cls in classes]
+
+    @staticmethod
     async def get_classes(db: AsyncWsSurrealConnection) -> List[Class]:
         classes: List[dict] = await db.query(  # type: ignore
             "SELECT * FROM class",

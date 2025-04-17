@@ -36,15 +36,16 @@
         </Card>
 
         <Dialog v-model:visible="showEditDialog" header="修改个人资料" :modal="true" class="edit-profile-dialog">
-            <Form v-slot="$form" :initialValues="editFormData" @submit="handleSubmit" class="edit-form">
+            <Form v-slot="$form" :initialValues="editFormData" :resolver="resolver" @submit="handleSubmit" class="edit-form">
                 <div class="form-field">
                     <label for="newname">用户名</label>
                     <InputGroup>
                         <InputGroupAddon>
                             <i class="pi pi-user"></i>
                         </InputGroupAddon>
-                        <InputText id="newname" name="newname" v-model="editFormData.newname" :feedback="false" class="w-full" />
+                        <InputText id="newname" name="newname" placeholder="请输入用户名" :feedback="false" class="w-full" />
                     </InputGroup>
+                    <Message v-if="$form.newname?.invalid" severity="error" size="small" variant="simple">{{ $form.newname.error.message }}</Message>
                 </div>
 
                 <div class="form-field">
@@ -53,8 +54,9 @@
                         <InputGroupAddon>
                             <i class="pi pi-envelope"></i>
                         </InputGroupAddon>
-                        <InputText id="email" name="email" v-model="editFormData.email" :feedback="false" class="w-full" />
+                        <InputText id="email" name="email" placeholder="请输入邮箱" :feedback="false" class="w-full" />
                     </InputGroup>
+                    <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">{{ $form.email.error.message }}</Message>
                 </div>
 
                 <div class="form-field">
@@ -63,8 +65,9 @@
                         <InputGroupAddon>
                             <i class="pi pi-phone"></i>
                         </InputGroupAddon>
-                        <InputText id="phone" name="phone" v-model="editFormData.phone" :feedback="false" class="w-full" />
+                        <InputText id="phone" name="phone" placeholder="请输入手机号" :feedback="false" class="w-full" />
                     </InputGroup>
+                    <Message v-if="$form.phone?.invalid" severity="error" size="small" variant="simple">{{ $form.phone.error.message }}</Message>
                 </div>
                 
                 <div class="profile-actions">
@@ -77,19 +80,22 @@
 </template>
 
 <script setup lang="ts">
-import apis from '@/utils/api';
+import { getProfile, updateProfile, getEvaluations } from '@/utils/api';
 import { ref, computed, onMounted } from 'vue';
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
-import { Form } from '@primevue/forms';
+import { Form, type FormSubmitEvent } from '@primevue/forms';
+import { zodResolver } from '@primevue/forms/resolvers/zod';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
+import Message from 'primevue/message';
 import { useRouter } from 'vue-router';
+import { z } from "zod";
 
 const router = useRouter();
 const profileData = ref({
@@ -107,12 +113,11 @@ const bannerInfo = ref({
     type: BannerType.Success
 });
 
-const editFormData = ref({
-    username: '',
+const editFormData = {
     newname: '',
     email: '',
-    phone: '',
-});
+    phone: ''
+};
 
 const userTypeText = computed(() => {
     const types = {
@@ -123,18 +128,27 @@ const userTypeText = computed(() => {
     return types[profileData.value.type as keyof typeof types] || profileData.value.type;
 });
 
+const resolver = ref(zodResolver(
+    z.object({
+        newname: z.string().min(8, { message: '用户名至少需要8个字符' }),
+        email: z.string().email({ message: '请输入有效的邮箱地址' }),
+        phone: z.string()
+            .regex(/^1[3-9]\d{9}$/, { message: '请输入有效的11位手机号' })
+            .length(11, { message: '手机号必须为11位' })
+    })
+));
+
 onMounted(() => {
     fetchProfileData();
 });
 
 function fetchProfileData() {
-    apis.getProfile().then(res => {
+    getProfile().then(res => {
         if (res.success) {
             profileData.value = res.data;
-            editFormData.value.username = res.data.username;
-            editFormData.value.email = res.data.email;
-            editFormData.value.phone = res.data.phone;
-            editFormData.value.newname = res.data.username;
+            editFormData.newname = res.data.username;
+            editFormData.email = res.data.email;
+            editFormData.phone = res.data.phone;
         } else {
             showBanner(res.message, BannerType.Error);
         }
@@ -143,8 +157,8 @@ function fetchProfileData() {
     });
 }
 
-function handleSubmit(event: Event) {
-    const data = event.values;
+function handleSubmit(form: FormSubmitEvent<Record<string, any>>) {
+    const data = form.values;
     const updateData = {
         username: profileData.value.username,
         newname: undefined,
@@ -160,17 +174,17 @@ function handleSubmit(event: Event) {
     if (data.phone && data.phone !== profileData.value.phone) {
         updateData.phone = data.phone;
     }
-    updateProfile(updateData);
+    updateProfileData(updateData);
     showEditDialog.value = false;
 }
 
-function updateProfile(data: {
+function updateProfileData(data: {
     username: string;
     newname?: string;
     email?: string;
     phone?: string;
 }) {
-    apis.updateProfile(data).then(res => {
+    updateProfile(data).then(res => {
         if (res.success) {
             if (data.newname) {
                 showBanner('用户名更新成功, 请重新登录', BannerType.Success);

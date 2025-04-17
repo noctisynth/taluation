@@ -1,9 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import APIRouter, Request
 from argon2.exceptions import VerifyMismatchError
 from app.db import db
 from app.models import Response
-from app.models.account import Account, Credentials, LoginResponse, UpdateAccount, AccountResponse, ChangePassword
+from app.models.account import Account, Credentials, LoginResponse, UpdateAccount, AccountResponse, ChangePassword, AccountModel
 from app.repositories.account import AccountRepository
 
 import argon2
@@ -157,3 +157,17 @@ async def get_account(name: str, request: Request) -> Response[Optional[AccountR
         return Response("Permission denied. You can only access the user ID.", data=account.to_response().retain_id_only(), success=True)
     else:
         return Response("Account found.", data=account.to_response())
+
+
+@router.get("/users")
+async def get_users(request: Request) -> Response[List[AccountResponse]]:
+    auth = request.state.auth
+    account = await AccountRepository.get_account_by_name(db, auth.username)
+
+    if account is None:
+        return Response("Account not found.", data=None, success=False)
+    
+    if account.type != "admin":
+        return Response("Permission denied. Only admin can access this resource.", data=None, success=False)
+    
+    return Response("Users found.", data=[account.to_response() for account in await AccountRepository.get_non_admin_accounts(db)])

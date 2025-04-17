@@ -26,9 +26,11 @@ class Account(BaseModel):
     def validate_id(cls, v: Any) -> Optional[str]:
         if v is None:
             return None
+        if isinstance(v, str):
+            return v
         if hasattr(v, 'id'):
-            return v.id
-        return v
+            return str(v.id)
+        return str(v)
 
 
 class AccountModel(BaseModel, arbitrary_types_allowed=True):

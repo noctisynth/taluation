@@ -1,5 +1,5 @@
 from surrealdb import RecordID
-from typing import Optional
+from typing import Optional, Dict
 from pydantic import BaseModel, field_validator
 from typing import Any
 
@@ -17,8 +17,11 @@ class Evaluation(BaseModel):
     def validate_id(cls, v: Any) -> Optional[str]:
         if v is None:
             return None
+        if isinstance(v, str):
+            return v
         if hasattr(v, 'id'):
-            return v.id
+            return str(v.id)
+        return str(v)
         
     def to_model(self) -> "EvaluationModel":
         return EvaluationModel(
@@ -51,3 +54,13 @@ class CreateEvaluation(BaseModel):
     cls: str
     score: int
     comment: str
+
+
+class EvaluationStats(BaseModel):
+    count: int
+    average: float
+    max: int
+    min: int
+    class_id: Optional[str]
+    class_name: Optional[str]
+    distribution: Dict[str, int]
