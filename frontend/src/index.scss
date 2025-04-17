@@ -34,9 +34,9 @@ $font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
 html, body {
   margin: 0;
   padding: 0;
-  // box-sizing: border-box; 影响滚动条
   overflow: hidden;
   height: 100%;
+  font-family: $font-family;
 }
 
 #app {

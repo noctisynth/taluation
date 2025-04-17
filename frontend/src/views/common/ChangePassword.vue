@@ -74,7 +74,7 @@ import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Password from 'primevue/password';
-import { Form, FormSubmitEvent } from '@primevue/forms';
+import { Form, type FormSubmitEvent } from '@primevue/forms';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import Message from 'primevue/message';
@@ -113,7 +113,7 @@ const resolver = ref(zodResolver(
     })
 ));
 
-function handleSubmit(form: FormSubmitEvent<Record<string, any>>) {
+function handleSubmit(form: FormSubmitEvent<Record<string, string>>) {
     const data = form.values as typeof formData;
     auth.changePassword(data.newpassword, data.oldpassword).then(res => {
         if (res.success) {

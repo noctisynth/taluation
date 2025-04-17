@@ -143,7 +143,7 @@ function fetchProfileData() {
     });
 }
 
-function handleSubmit(event: any) {
+function handleSubmit(event: Event) {
     const data = event.values;
     const updateData = {
         username: profileData.value.username,
