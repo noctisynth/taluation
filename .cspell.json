@@ -4,6 +4,7 @@
     "farmfe",
     "redoc",
     "surrealdb",
-    "taluation"
+    "taluation",
+    "unplugin"
   ]
 }
