@@ -65,11 +65,11 @@ import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
 
 interface Evaluation {
-    id: string;
-    user: string;
-    cls: string;
-    score: number;
-    comment: string;
+	id: string;
+	user: string;
+	cls: string;
+	score: number;
+	comment: string;
 }
 
 const evaluations = ref<Evaluation[]>([]);
@@ -80,61 +80,61 @@ const deleteDialogVisible = ref(false);
 const deleting = ref(false);
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 3000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 3000,
+	type: BannerType.Success,
 });
 
 onMounted(async () => {
-    await loadEvaluations();
+	await loadEvaluations();
 });
 
 const loadEvaluations = async () => {
-    loading.value = true;
-    try {
-        const response = await getEvaluations({});
-        if (response.success) {
-            evaluations.value = response.data;
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '获取评价列表失败', BannerType.Error);
-    } finally {
-        loading.value = false;
-    }
+	loading.value = true;
+	try {
+		const response = await getEvaluations({});
+		if (response.success) {
+			evaluations.value = response.data;
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '获取评价列表失败', BannerType.Error);
+	} finally {
+		loading.value = false;
+	}
 };
 
 const openDeleteDialog = (evaluation: Evaluation) => {
-    selectedEvaluation.value = evaluation;
-    deleteDialogVisible.value = true;
+	selectedEvaluation.value = evaluation;
+	deleteDialogVisible.value = true;
 };
 
 const confirmDeleteEvaluation = async () => {
-    if (!selectedEvaluation.value) return;
-    
-    deleting.value = true;
-    try {
-        const response = await deleteEvaluation(selectedEvaluation.value.id);
-        if (response.success) {
-            showBanner('评价删除成功', BannerType.Success);
-            deleteDialogVisible.value = false;
-            await loadEvaluations();
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '删除评价失败', BannerType.Error);
-    } finally {
-        deleting.value = false;
-    }
+	if (!selectedEvaluation.value) return;
+
+	deleting.value = true;
+	try {
+		const response = await deleteEvaluation(selectedEvaluation.value.id);
+		if (response.success) {
+			showBanner('评价删除成功', BannerType.Success);
+			deleteDialogVisible.value = false;
+			await loadEvaluations();
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '删除评价失败', BannerType.Error);
+	} finally {
+		deleting.value = false;
+	}
 };
 
 const showBanner = (message: string, type: BannerType) => {
-    bannerInfo.value.message = message;
-    bannerInfo.value.type = type;
-    bannerInfo.value.show = true;
+	bannerInfo.value.message = message;
+	bannerInfo.value.type = type;
+	bannerInfo.value.show = true;
 };
 </script>
 

@@ -8,10 +8,10 @@
 
 <script lang="ts">
 export enum BannerType {
-  Error = 'error',
-  Info = 'info',
-  Success = 'success',
-  Warning = 'warning'
+	Error = 'error',
+	Info = 'info',
+	Success = 'success',
+	Warning = 'warning',
 }
 </script>
 

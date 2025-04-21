@@ -26,6 +26,7 @@
 	"devDependencies": {
 		"@farmfe/cli": "^1.0.4",
 		"@farmfe/core": "^1.7.4",
+		"@farmfe/plugin-compress": "^0.0.2",
 		"@farmfe/plugin-sass": "^1.1.0",
 		"@types/node": "^22.14.1",
 		"core-js": "^3.41.0",

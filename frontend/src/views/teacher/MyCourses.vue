@@ -168,7 +168,13 @@
 
 <script setup lang="ts">
 import Banner from '@/components/Banner.vue';
-import { getClasses, getEvaluationStats, getEvaluations, updateClass, addClass } from '@/utils/api';
+import {
+	getClasses,
+	getEvaluationStats,
+	getEvaluations,
+	updateClass,
+	addClass,
+} from '@/utils/api';
 import { ref, onMounted, reactive, computed } from 'vue';
 import { BannerType } from '@/components/Banner.vue';
 import Card from 'primevue/card';
@@ -179,37 +185,40 @@ import Rating from 'primevue/rating';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
 import InputText from 'primevue/inputtext';
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
-import { BarChart } from "echarts/charts";
-import { GridComponent, TooltipComponent, TitleComponent } from "echarts/components";
-import VChart from "vue-echarts";
-
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import { BarChart } from 'echarts/charts';
+import {
+	GridComponent,
+	TooltipComponent,
+	TitleComponent,
+} from 'echarts/components';
+import VChart from 'vue-echarts';
 
 interface Course {
-    id: string;
-    name: string;
-    category: string;
-    description: string;
-    teacher: string;
+	id: string;
+	name: string;
+	category: string;
+	description: string;
+	teacher: string;
 }
 
 interface Evaluation {
-    id: string;
-    user: string;
-    cls: string;
-    score: number;
-    comment: string;
+	id: string;
+	user: string;
+	cls: string;
+	score: number;
+	comment: string;
 }
 
 interface CourseStats {
-    count: number;
-    average: number;
-    max: number;
-    min: number;
-    class_id: string;
-    class_name: string;
-    distribution: {[key: string]: number};
+	count: number;
+	average: number;
+	max: number;
+	min: number;
+	class_id: string;
+	class_name: string;
+	distribution: { [key: string]: number };
 }
 
 const courses = ref<Course[]>([]);
@@ -217,13 +226,13 @@ const selectedCourse = ref<Course | null>(null);
 const courseDetailsVisible = ref(false);
 const evaluations = ref<Evaluation[]>([]);
 const courseStats = reactive<CourseStats>({
-    count: 0,
-    average: 0,
-    max: 0,
-    min: 0,
-    class_id: '',
-    class_name: '',
-    distribution: {}
+	count: 0,
+	average: 0,
+	max: 0,
+	min: 0,
+	class_id: '',
+	class_name: '',
+	distribution: {},
 });
 
 const userType = ref(localStorage.getItem('user_type'));
@@ -232,256 +241,265 @@ const isStudent = computed(() => userType.value === 'student');
 const showAddEvaluationForm = ref(false);
 const submitting = ref(false);
 const newEvaluation = reactive({
-    score: 5,
-    comment: ''
+	score: 5,
+	comment: '',
 });
 
 const chartOption = computed(() => {
-    const data = [
-        courseStats.distribution['1'] || 0,
-        courseStats.distribution['2'] || 0,
-        courseStats.distribution['3'] || 0,
-        courseStats.distribution['4'] || 0,
-        courseStats.distribution['5'] || 0
-    ];
-    
-    return {
-        title: {
-            text: '评分分布',
-            left: 'center',
-            textStyle: {
-                fontSize: 14,
-                color: '#6c757d'
-            }
-        },
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            data: ['1分', '2分', '3分', '4分', '5分'],
-            axisTick: {
-                alignWithLabel: true
-            }
-        },
-        yAxis: {
-            type: 'value',
-            minInterval: 1
-        },
-        series: [
-            {
-                name: '评价数',
-                type: 'bar',
-                barWidth: '60%',
-                data: data,
-                itemStyle: {
-                    color: '#60a5fa'
-                }
-            }
-        ]
-    };
+	const data = [
+		courseStats.distribution['1'] || 0,
+		courseStats.distribution['2'] || 0,
+		courseStats.distribution['3'] || 0,
+		courseStats.distribution['4'] || 0,
+		courseStats.distribution['5'] || 0,
+	];
+
+	return {
+		title: {
+			text: '评分分布',
+			left: 'center',
+			textStyle: {
+				fontSize: 14,
+				color: '#6c757d',
+			},
+		},
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'shadow',
+			},
+		},
+		grid: {
+			left: '3%',
+			right: '4%',
+			bottom: '3%',
+			containLabel: true,
+		},
+		xAxis: {
+			type: 'category',
+			data: ['1分', '2分', '3分', '4分', '5分'],
+			axisTick: {
+				alignWithLabel: true,
+			},
+		},
+		yAxis: {
+			type: 'value',
+			minInterval: 1,
+		},
+		series: [
+			{
+				name: '评价数',
+				type: 'bar',
+				barWidth: '60%',
+				data: data,
+				itemStyle: {
+					color: '#60a5fa',
+				},
+			},
+		],
+	};
 });
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    type: BannerType.Success,
-    duration: 3000
+	message: '',
+	show: false,
+	type: BannerType.Success,
+	duration: 3000,
 });
 
 const addCourseVisible = ref(false);
 const newCourse = reactive({
-    name: '',
-    category: '',
-    description: '',
-    teacher: localStorage.getItem('username') || ''
+	name: '',
+	category: '',
+	description: '',
+	teacher: localStorage.getItem('username') || '',
 });
 
 const editCourseVisible = ref(false);
 const editingCourse = ref<{
-    name: string;
-    newname?: string;
-    category?: string;
-    description?: string;
+	name: string;
+	newname?: string;
+	category?: string;
+	description?: string;
 } | null>(null);
 
 const openCourseDetails = async (course: Course) => {
-    selectedCourse.value = course;
-    courseDetailsVisible.value = true;
-    
-    try {
-        const evalResponse = await getEvaluations({ class_id: course.id });
-        if (evalResponse.success) {
-            evaluations.value = evalResponse.data;
-        }
-        
-        const statsResponse = await getEvaluationStats({ class_id: course.id });
-        if (statsResponse.success) {
-            Object.assign(courseStats, statsResponse.data);
-        }
-    } catch (err: any) {
-        bannerInfo.value.message = err.message;
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    }
+	selectedCourse.value = course;
+	courseDetailsVisible.value = true;
+
+	try {
+		const evalResponse = await getEvaluations({ class_id: course.id });
+		if (evalResponse.success) {
+			evaluations.value = evalResponse.data;
+		}
+
+		const statsResponse = await getEvaluationStats({ class_id: course.id });
+		if (statsResponse.success) {
+			Object.assign(courseStats, statsResponse.data);
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message;
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	}
 };
 
 const openAddCourseDialog = () => {
-    newCourse.name = '';
-    newCourse.category = '';
-    newCourse.description = '';
-    addCourseVisible.value = true;
+	newCourse.name = '';
+	newCourse.category = '';
+	newCourse.description = '';
+	addCourseVisible.value = true;
 };
 
 const submitAddCourse = async () => {
-    if (!newCourse.name || !newCourse.category) {
-        bannerInfo.value.message = '课程名称和分类不能为空';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-        return;
-    }
-    
-    submitting.value = true;
-    try {
-        const res = await addClass(newCourse);
-        if (res.success) {
-            bannerInfo.value.message = '课程添加成功';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Success;
-            addCourseVisible.value = false;
-            
-            const classesRes = await getClasses({
-                teacher: localStorage.getItem('username') ?? undefined
-            });
-            if (classesRes.success) {
-                courses.value = classesRes.data;
-            }
-        } else {
-            bannerInfo.value.message = res.message || '添加失败';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    } catch (err: any) {
-        bannerInfo.value.message = err.message || '添加失败';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    } finally {
-        submitting.value = false;
-    }
+	if (!newCourse.name || !newCourse.category) {
+		bannerInfo.value.message = '课程名称和分类不能为空';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	submitting.value = true;
+	try {
+		const res = await addClass(newCourse);
+		if (res.success) {
+			bannerInfo.value.message = '课程添加成功';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Success;
+			addCourseVisible.value = false;
+
+			const classesRes = await getClasses({
+				teacher: localStorage.getItem('username') ?? undefined,
+			});
+			if (classesRes.success) {
+				courses.value = classesRes.data;
+			}
+		} else {
+			bannerInfo.value.message = res.message || '添加失败';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message || '添加失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		submitting.value = false;
+	}
 };
 
 const openEditCourseDialog = (course: Course) => {
-    editingCourse.value = {
-        name: course.name,
-        newname: course.name,
-        category: course.category,
-        description: course.description
-    };
-    editCourseVisible.value = true;
+	editingCourse.value = {
+		name: course.name,
+		newname: course.name,
+		category: course.category,
+		description: course.description,
+	};
+	editCourseVisible.value = true;
 };
 
 const submitEditCourse = async () => {
-    if (!editingCourse.value || !editingCourse.value.newname || !editingCourse.value.category) {
-        bannerInfo.value.message = '课程名称和分类不能为空';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-        return;
-    }
-    
-    const originalCourse = courses.value.find(c => c.name === editingCourse.value?.name);
-    if (!originalCourse) {
-        bannerInfo.value.message = '找不到原始课程信息';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-        return;
-    }
-    
-    const updateData: {
-        name: string;
-        newname?: string;
-        category?: string;
-        description?: string;
-    } = {
-        name: editingCourse.value.name
-    };
-    
-    if (editingCourse.value.newname !== originalCourse.name) {
-        updateData.newname = editingCourse.value.newname;
-    }
-    
-    if (editingCourse.value.category !== originalCourse.category) {
-        updateData.category = editingCourse.value.category;
-    }
-    
-    if (editingCourse.value.description !== originalCourse.description) {
-        updateData.description = editingCourse.value.description;
-    }
-    
-    const hasOnlyNameChange = Object.keys(updateData).length === 2 && updateData.newname;
-    const hasNoChanges = Object.keys(updateData).length === 1;
-    
-    if (hasNoChanges || hasOnlyNameChange) {
-        bannerInfo.value.message = '未检测到需要更新的信息';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Info;
-        editCourseVisible.value = false;
-        return;
-    }
-    
-    submitting.value = true;
-    try {
-        const res = await updateClass(updateData);
-        if (res.success) {
-            bannerInfo.value.message = '课程更新成功';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Success;
-            editCourseVisible.value = false;
-            
-            const classesRes = await getClasses({
-                teacher: localStorage.getItem('username') ?? undefined
-            });
-            if (classesRes.success) {
-                courses.value = classesRes.data;
-            }
-        } else {
-            bannerInfo.value.message = res.message || '更新失败';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    } catch (err: any) {
-        bannerInfo.value.message = err.message || '更新失败';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    } finally {
-        submitting.value = false;
-    }
+	if (
+		!editingCourse.value ||
+		!editingCourse.value.newname ||
+		!editingCourse.value.category
+	) {
+		bannerInfo.value.message = '课程名称和分类不能为空';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	const originalCourse = courses.value.find(
+		(c) => c.name === editingCourse.value?.name,
+	);
+	if (!originalCourse) {
+		bannerInfo.value.message = '找不到原始课程信息';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	const updateData: {
+		name: string;
+		newname?: string;
+		category?: string;
+		description?: string;
+	} = {
+		name: editingCourse.value.name,
+	};
+
+	if (editingCourse.value.newname !== originalCourse.name) {
+		updateData.newname = editingCourse.value.newname;
+	}
+
+	if (editingCourse.value.category !== originalCourse.category) {
+		updateData.category = editingCourse.value.category;
+	}
+
+	if (editingCourse.value.description !== originalCourse.description) {
+		updateData.description = editingCourse.value.description;
+	}
+
+	const hasOnlyNameChange =
+		Object.keys(updateData).length === 2 && updateData.newname;
+	const hasNoChanges = Object.keys(updateData).length === 1;
+
+	if (hasNoChanges || hasOnlyNameChange) {
+		bannerInfo.value.message = '未检测到需要更新的信息';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Info;
+		editCourseVisible.value = false;
+		return;
+	}
+
+	submitting.value = true;
+	try {
+		const res = await updateClass(updateData);
+		if (res.success) {
+			bannerInfo.value.message = '课程更新成功';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Success;
+			editCourseVisible.value = false;
+
+			const classesRes = await getClasses({
+				teacher: localStorage.getItem('username') ?? undefined,
+			});
+			if (classesRes.success) {
+				courses.value = classesRes.data;
+			}
+		} else {
+			bannerInfo.value.message = res.message || '更新失败';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message || '更新失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		submitting.value = false;
+	}
 };
 
 onMounted(() => {
-    getClasses({
-        teacher: localStorage.getItem('username') ?? undefined
-    }).then(res => {
-        if (res.success) {
-            courses.value = res.data;
-        } else {
-            bannerInfo.value.message = res.message;
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    }).catch(err => {
-        bannerInfo.value.message = err.message;
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    });
+	getClasses({
+		teacher: localStorage.getItem('username') ?? undefined,
+	})
+		.then((res) => {
+			if (res.success) {
+				courses.value = res.data;
+			} else {
+				bannerInfo.value.message = res.message;
+				bannerInfo.value.show = true;
+				bannerInfo.value.type = BannerType.Error;
+			}
+		})
+		.catch((err) => {
+			bannerInfo.value.message = err.message;
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		});
 });
 </script>
 

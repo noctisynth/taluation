@@ -105,11 +105,11 @@ import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
 
 interface Course {
-    id: string;
-    name: string;
-    category: string;
-    description: string;
-    teacher: string;
+	id: string;
+	name: string;
+	category: string;
+	description: string;
+	teacher: string;
 }
 
 const courses = ref<Course[]>([]);
@@ -118,11 +118,11 @@ const selectedCourse = ref<Course | null>(null);
 
 const editDialogVisible = ref(false);
 const editFormData = reactive({
-    name: '',
-    newname: '',
-    category: '',
-    description: '',
-    teacher: ''
+	name: '',
+	newname: '',
+	category: '',
+	description: '',
+	teacher: '',
 });
 const submitting = ref(false);
 
@@ -130,120 +130,120 @@ const deleteDialogVisible = ref(false);
 const deleting = ref(false);
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 3000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 3000,
+	type: BannerType.Success,
 });
 
 onMounted(async () => {
-    await loadCourses();
+	await loadCourses();
 });
 
 const loadCourses = async () => {
-    loading.value = true;
-    try {
-        const response = await getClasses({});
-        if (response.success) {
-            courses.value = response.data;
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '获取课程列表失败', BannerType.Error);
-    } finally {
-        loading.value = false;
-    }
+	loading.value = true;
+	try {
+		const response = await getClasses({});
+		if (response.success) {
+			courses.value = response.data;
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '获取课程列表失败', BannerType.Error);
+	} finally {
+		loading.value = false;
+	}
 };
 
 const openEditDialog = (course: Course) => {
-    selectedCourse.value = course;
-    editFormData.name = course.name;
-    editFormData.newname = course.name;
-    editFormData.category = course.category;
-    editFormData.description = course.description;
-    editFormData.teacher = course.teacher;
-    editDialogVisible.value = true;
+	selectedCourse.value = course;
+	editFormData.name = course.name;
+	editFormData.newname = course.name;
+	editFormData.category = course.category;
+	editFormData.description = course.description;
+	editFormData.teacher = course.teacher;
+	editDialogVisible.value = true;
 };
 
 const saveCourseChanges = async () => {
-    if (!selectedCourse.value) return;
-    
-    submitting.value = true;
-    try {
-        const updateData: {
-            name: string;
-            newname?: string;
-            teacher?: string;
-            description?: string;
-            category?: string;
-        } = {
-            name: editFormData.name
-        };
-        
-        if (editFormData.newname !== editFormData.name) {
-            updateData.newname = editFormData.newname;
-        }
-        
-        if (editFormData.category !== selectedCourse.value.category) {
-            updateData.category = editFormData.category;
-        }
-        
-        if (editFormData.description !== selectedCourse.value.description) {
-            updateData.description = editFormData.description;
-        }
-        
-        if (editFormData.teacher !== selectedCourse.value.teacher) {
-            updateData.teacher = editFormData.teacher;
-        }
-        
-        const response = await updateClass(updateData);
-        
-        if (response.success) {
-            showBanner('课程信息更新成功', BannerType.Success);
-            editDialogVisible.value = false;
-            await loadCourses();
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '更新课程信息失败', BannerType.Error);
-    } finally {
-        submitting.value = false;
-    }
+	if (!selectedCourse.value) return;
+
+	submitting.value = true;
+	try {
+		const updateData: {
+			name: string;
+			newname?: string;
+			teacher?: string;
+			description?: string;
+			category?: string;
+		} = {
+			name: editFormData.name,
+		};
+
+		if (editFormData.newname !== editFormData.name) {
+			updateData.newname = editFormData.newname;
+		}
+
+		if (editFormData.category !== selectedCourse.value.category) {
+			updateData.category = editFormData.category;
+		}
+
+		if (editFormData.description !== selectedCourse.value.description) {
+			updateData.description = editFormData.description;
+		}
+
+		if (editFormData.teacher !== selectedCourse.value.teacher) {
+			updateData.teacher = editFormData.teacher;
+		}
+
+		const response = await updateClass(updateData);
+
+		if (response.success) {
+			showBanner('课程信息更新成功', BannerType.Success);
+			editDialogVisible.value = false;
+			await loadCourses();
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '更新课程信息失败', BannerType.Error);
+	} finally {
+		submitting.value = false;
+	}
 };
 
 const openDeleteDialog = (course: Course) => {
-    selectedCourse.value = course;
-    deleteDialogVisible.value = true;
+	selectedCourse.value = course;
+	deleteDialogVisible.value = true;
 };
 
 const confirmDeleteCourse = async () => {
-    if (!selectedCourse.value) return;
-    
-    deleting.value = true;
-    try {
-        const response = await deleteClass({
-            name: selectedCourse.value.name
-        });
-        if (response.success) {
-            showBanner('课程删除成功', BannerType.Success);
-            deleteDialogVisible.value = false;
-            await loadCourses();
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '删除课程失败', BannerType.Error);
-    } finally {
-        deleting.value = false;
-    }
+	if (!selectedCourse.value) return;
+
+	deleting.value = true;
+	try {
+		const response = await deleteClass({
+			name: selectedCourse.value.name,
+		});
+		if (response.success) {
+			showBanner('课程删除成功', BannerType.Success);
+			deleteDialogVisible.value = false;
+			await loadCourses();
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '删除课程失败', BannerType.Error);
+	} finally {
+		deleting.value = false;
+	}
 };
 
 const showBanner = (message: string, type: BannerType) => {
-    bannerInfo.value.message = message;
-    bannerInfo.value.type = type;
-    bannerInfo.value.show = true;
+	bannerInfo.value.message = message;
+	bannerInfo.value.type = type;
+	bannerInfo.value.show = true;
 };
 </script>
 

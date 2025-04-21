@@ -85,59 +85,64 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 3000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 3000,
+	type: BannerType.Success,
 });
 
 const formData = {
-    newpassword: '',
-    oldpassword: '',
-    confirmPassword: ''
+	newpassword: '',
+	oldpassword: '',
+	confirmPassword: '',
 };
 
-const resolver = ref(zodResolver(
-    z.object({
-        oldpassword: z.string().min(1, { message: '请输入当前密码' }),
-        newpassword: z.string()
-            .min(8, { message: '密码至少需要8个字符' })
-            .regex(/[A-Z]/, { message: '密码需要包含至少一个大写字母' })
-            .regex(/[a-z]/, { message: '密码需要包含至少一个小写字母' })
-            .regex(/[0-9]/, { message: '密码需要包含至少一个数字' })
-            .regex(/[^A-Za-z0-9]/, { message: '密码需要包含至少一个特殊字符' }),
-        confirmPassword: z.string().min(1, { message: '请确认密码' }),
-    }).refine((data) => data.newpassword === data.confirmPassword, {
-        message: "两次输入的密码不一致",
-        path: ["confirmPassword"],
-    })
-));
+const resolver = ref(
+	zodResolver(
+		z
+			.object({
+				oldpassword: z.string().min(1, { message: '请输入当前密码' }),
+				newpassword: z
+					.string()
+					.min(8, { message: '密码至少需要8个字符' })
+					.regex(/[A-Z]/, { message: '密码需要包含至少一个大写字母' })
+					.regex(/[a-z]/, { message: '密码需要包含至少一个小写字母' })
+					.regex(/[0-9]/, { message: '密码需要包含至少一个数字' })
+					.regex(/[^A-Za-z0-9]/, { message: '密码需要包含至少一个特殊字符' }),
+				confirmPassword: z.string().min(1, { message: '请确认密码' }),
+			})
+			.refine((data) => data.newpassword === data.confirmPassword, {
+				message: '两次输入的密码不一致',
+				path: ['confirmPassword'],
+			}),
+	),
+);
 
 function handleSubmit(form: FormSubmitEvent<Record<string, string>>) {
-    const data = form.values as typeof formData;
-    changePassword(data.newpassword, data.oldpassword).then(res => {
-        if (res.success) {
-            bannerInfo.value.message = '密码修改成功';
-            bannerInfo.value.type = BannerType.Success;
-            bannerInfo.value.show = true;
-            logout(false);
-        } else {
-            bannerInfo.value.message = res.message;
-            bannerInfo.value.type = BannerType.Error;
-            bannerInfo.value.show = true;
-        }
-    }).catch((error) => {
-        bannerInfo.value.message = error.message;
-        bannerInfo.value.type = BannerType.Error;
-        bannerInfo.value.show = true;
-    });
+	const data = form.values as typeof formData;
+	changePassword(data.newpassword, data.oldpassword)
+		.then((res) => {
+			if (res.success) {
+				bannerInfo.value.message = '密码修改成功';
+				bannerInfo.value.type = BannerType.Success;
+				bannerInfo.value.show = true;
+				logout(false);
+			} else {
+				bannerInfo.value.message = res.message;
+				bannerInfo.value.type = BannerType.Error;
+				bannerInfo.value.show = true;
+			}
+		})
+		.catch((error) => {
+			bannerInfo.value.message = error.message;
+			bannerInfo.value.type = BannerType.Error;
+			bannerInfo.value.show = true;
+		});
 }
 
 function goBack() {
-    router.push('/profile');
+	router.push('/profile');
 }
-
-
 </script>
 
 <style scoped lang="scss">

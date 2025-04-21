@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { getProfile, updateProfile, getEvaluations } from '@/utils/api';
+import { getProfile, updateProfile } from '@/utils/api';
 import { ref, computed, onMounted } from 'vue';
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
@@ -95,125 +95,133 @@ import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
 import Message from 'primevue/message';
 import { useRouter } from 'vue-router';
-import { z } from "zod";
+import { z } from 'zod';
 
 const router = useRouter();
 const profileData = ref({
-    username: '',
-    email: '',
-    phone: '',
-    type: ''
+	username: '',
+	email: '',
+	phone: '',
+	type: '',
 });
 
 const showEditDialog = ref(false);
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 5000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 5000,
+	type: BannerType.Success,
 });
 
 const editFormData = {
-    newname: '',
-    email: '',
-    phone: ''
+	newname: '',
+	email: '',
+	phone: '',
 };
 
 const userTypeText = computed(() => {
-    const types = {
-        'student': '学生',
-        'teacher': '教师',
-        'admin': '管理员'
-    };
-    return types[profileData.value.type as keyof typeof types] || profileData.value.type;
+	const types = {
+		student: '学生',
+		teacher: '教师',
+		admin: '管理员',
+	};
+	return (
+		types[profileData.value.type as keyof typeof types] ||
+		profileData.value.type
+	);
 });
 
-const resolver = ref(zodResolver(
-    z.object({
-        newname: z.string().min(8, { message: '用户名至少需要8个字符' }),
-        email: z.string().email({ message: '请输入有效的邮箱地址' }),
-        phone: z.string()
-            .regex(/^1[3-9]\d{9}$/, { message: '请输入有效的11位手机号' })
-            .length(11, { message: '手机号必须为11位' })
-    })
-));
+const zodSchema = z.object({
+	newname: z.string().min(8, { message: '用户名至少需要8个字符' }),
+	email: z.string().email({ message: '请输入有效的邮箱地址' }),
+	phone: z
+		.string()
+		.regex(/^1[3-9]\d{9}$/, { message: '请输入有效的11位手机号' })
+		.length(11, { message: '手机号必须为11位' }),
+});
+
+// @ts-ignore 忽略类型实例化过深的问题
+const resolver = ref(zodResolver(zodSchema));
 
 onMounted(() => {
-    fetchProfileData();
+	fetchProfileData();
 });
 
 function fetchProfileData() {
-    getProfile().then(res => {
-        if (res.success) {
-            profileData.value = res.data;
-            editFormData.newname = res.data.username;
-            editFormData.email = res.data.email;
-            editFormData.phone = res.data.phone;
-        } else {
-            showBanner(res.message, BannerType.Error);
-        }
-    }).catch(err => {
-        showBanner(err.message, BannerType.Error);
-    });
+	getProfile()
+		.then((res) => {
+			if (res.success) {
+				profileData.value = res.data;
+				editFormData.newname = res.data.username;
+				editFormData.email = res.data.email;
+				editFormData.phone = res.data.phone;
+			} else {
+				showBanner(res.message, BannerType.Error);
+			}
+		})
+		.catch((err) => {
+			showBanner(err.message, BannerType.Error);
+		});
 }
 
 function handleSubmit(form: FormSubmitEvent<Record<string, any>>) {
-    const data = form.values;
-    const updateData = {
-        username: profileData.value.username,
-        newname: undefined,
-        email: undefined,
-        phone: undefined
-    };
-    if (data.newname && data.newname !== profileData.value.username) {
-        updateData.newname = data.newname;
-    }
-    if (data.email && data.email !== profileData.value.email) {
-        updateData.email = data.email;
-    }
-    if (data.phone && data.phone !== profileData.value.phone) {
-        updateData.phone = data.phone;
-    }
-    updateProfileData(updateData);
-    showEditDialog.value = false;
+	const data = form.values;
+	const updateData = {
+		username: profileData.value.username,
+		newname: undefined,
+		email: undefined,
+		phone: undefined,
+	};
+	if (data.newname && data.newname !== profileData.value.username) {
+		updateData.newname = data.newname;
+	}
+	if (data.email && data.email !== profileData.value.email) {
+		updateData.email = data.email;
+	}
+	if (data.phone && data.phone !== profileData.value.phone) {
+		updateData.phone = data.phone;
+	}
+	updateProfileData(updateData);
+	showEditDialog.value = false;
 }
 
 function updateProfileData(data: {
-    username: string;
-    newname?: string;
-    email?: string;
-    phone?: string;
+	username: string;
+	newname?: string;
+	email?: string;
+	phone?: string;
 }) {
-    updateProfile(data).then(res => {
-        if (res.success) {
-            if (data.newname) {
-                showBanner('用户名更新成功, 请重新登录', BannerType.Success);
-            } else {
-                showBanner('个人资料更新成功', BannerType.Success);
-                fetchProfileData();
-            }
-        } else {
-            showBanner(res.message || '更新失败', BannerType.Error);
-        }
-    }).catch(err => {
-        showBanner('更新失败', BannerType.Error);
-        console.error(err);
-    });
+	updateProfile(data)
+		.then((res) => {
+			if (res.success) {
+				if (data.newname) {
+					showBanner('用户名更新成功, 请重新登录', BannerType.Success);
+				} else {
+					showBanner('个人资料更新成功', BannerType.Success);
+					fetchProfileData();
+				}
+			} else {
+				showBanner(res.message || '更新失败', BannerType.Error);
+			}
+		})
+		.catch((err) => {
+			showBanner('更新失败', BannerType.Error);
+			console.error(err);
+		});
 }
 
 function navigateToChangePassword() {
-    router.push('/change-password');
+	router.push('/change-password');
 }
 
 function showBanner(message: string, type: BannerType) {
-    bannerInfo.value = {
-        message,
-        show: true,
-        duration: 5000,
-        type
-    };
+	bannerInfo.value = {
+		message,
+		show: true,
+		duration: 5000,
+		type,
+	};
 }
-
 </script>
 
 <style scoped lang="scss">

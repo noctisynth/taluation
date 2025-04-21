@@ -104,11 +104,11 @@ import Banner from '@/components/Banner.vue';
 import { BannerType } from '@/components/Banner.vue';
 
 interface User {
-    id: string;
-    username: string;
-    email: string;
-    phone: string;
-    type: string;
+	id: string;
+	username: string;
+	email: string;
+	phone: string;
+	type: string;
 }
 
 const users = ref<User[]>([]);
@@ -117,11 +117,11 @@ const selectedUser = ref<User | null>(null);
 
 const editDialogVisible = ref(false);
 const editFormData = reactive({
-    username: '',
-    newname: '',
-    email: '',
-    phone: '',
-    type: ''
+	username: '',
+	newname: '',
+	email: '',
+	phone: '',
+	type: '',
 });
 const submitting = ref(false);
 
@@ -129,104 +129,107 @@ const deleteDialogVisible = ref(false);
 const deleting = ref(false);
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 3000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 3000,
+	type: BannerType.Success,
 });
 
 const userTypes = [
-    { label: '学生', value: 'student' },
-    { label: '教师', value: 'teacher' },
-    { label: '管理员', value: 'admin' }
+	{ label: '学生', value: 'student' },
+	{ label: '教师', value: 'teacher' },
+	{ label: '管理员', value: 'admin' },
 ];
 
 onMounted(async () => {
-    await loadUsers();
+	await loadUsers();
 });
 
 const loadUsers = async () => {
-    loading.value = true;
-    try {
-        const response = await getUsers();
-        if (response.success) {
-            users.value = response.data;
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '获取用户列表失败', BannerType.Error);
-    } finally {
-        loading.value = false;
-    }
+	loading.value = true;
+	try {
+		const response = await getUsers();
+		if (response.success) {
+			users.value = response.data;
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '获取用户列表失败', BannerType.Error);
+	} finally {
+		loading.value = false;
+	}
 };
 
 const openEditDialog = (user: User) => {
-    selectedUser.value = user;
-    editFormData.username = user.username;
-    editFormData.newname = user.username;
-    editFormData.email = user.email;
-    editFormData.phone = user.phone;
-    editFormData.type = user.type;
-    editDialogVisible.value = true;
+	selectedUser.value = user;
+	editFormData.username = user.username;
+	editFormData.newname = user.username;
+	editFormData.email = user.email;
+	editFormData.phone = user.phone;
+	editFormData.type = user.type;
+	editDialogVisible.value = true;
 };
 
 const saveUserChanges = async () => {
-    if (!selectedUser.value) return;
-    
-    submitting.value = true;
-    try {
-        const response = await updateProfile({
-            username: editFormData.username,
-            newname: editFormData.newname !== editFormData.username ? editFormData.newname : undefined,
-            email: editFormData.email,
-            phone: editFormData.phone,
-            type: editFormData.type
-        });
-        
-        if (response.success) {
-            showBanner('用户信息更新成功', BannerType.Success);
-            editDialogVisible.value = false;
-            await loadUsers();
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '更新用户信息失败', BannerType.Error);
-    } finally {
-        submitting.value = false;
-    }
+	if (!selectedUser.value) return;
+
+	submitting.value = true;
+	try {
+		const response = await updateProfile({
+			username: editFormData.username,
+			newname:
+				editFormData.newname !== editFormData.username
+					? editFormData.newname
+					: undefined,
+			email: editFormData.email,
+			phone: editFormData.phone,
+			type: editFormData.type,
+		});
+
+		if (response.success) {
+			showBanner('用户信息更新成功', BannerType.Success);
+			editDialogVisible.value = false;
+			await loadUsers();
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '更新用户信息失败', BannerType.Error);
+	} finally {
+		submitting.value = false;
+	}
 };
 
 const openDeleteDialog = (user: User) => {
-    selectedUser.value = user;
-    deleteDialogVisible.value = true;
+	selectedUser.value = user;
+	deleteDialogVisible.value = true;
 };
 
 const confirmDeleteUser = async () => {
-    if (!selectedUser.value) return;
-    
-    deleting.value = true;
-    try {
-        const response = await deleteUser(selectedUser.value.username);
-        if (response.success) {
-            showBanner('用户删除成功', BannerType.Success);
-            deleteDialogVisible.value = false;
-            await loadUsers();
-        } else {
-            showBanner(response.message, BannerType.Error);
-        }
-    } catch (error: any) {
-        showBanner(error.message || '删除用户失败', BannerType.Error);
-    } finally {
-        deleting.value = false;
-    }
+	if (!selectedUser.value) return;
+
+	deleting.value = true;
+	try {
+		const response = await deleteUser(selectedUser.value.username);
+		if (response.success) {
+			showBanner('用户删除成功', BannerType.Success);
+			deleteDialogVisible.value = false;
+			await loadUsers();
+		} else {
+			showBanner(response.message, BannerType.Error);
+		}
+	} catch (error: any) {
+		showBanner(error.message || '删除用户失败', BannerType.Error);
+	} finally {
+		deleting.value = false;
+	}
 };
 
 const showBanner = (message: string, type: BannerType) => {
-    bannerInfo.value.message = message;
-    bannerInfo.value.type = type;
-    bannerInfo.value.show = true;
+	bannerInfo.value.message = message;
+	bannerInfo.value.type = type;
+	bannerInfo.value.show = true;
 };
 </script>
 

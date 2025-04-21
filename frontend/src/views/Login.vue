@@ -47,7 +47,7 @@
 import Card from 'primevue/card';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
-import { Form, FormSubmitEvent } from '@primevue/forms';
+import { Form, type FormSubmitEvent } from '@primevue/forms';
 import InputGroup from 'primevue/inputgroup';
 import InputGroupAddon from 'primevue/inputgroupaddon';
 import { ref } from 'vue';
@@ -59,32 +59,33 @@ import { BannerType } from '@/components/Banner.vue';
 import router from '@/router';
 
 const logindata = {
-    username: '',
-    password: ''
+	username: '',
+	password: '',
 };
 
 const errorMessage = ref('');
 const showError = ref(false);
 
 function login(form: FormSubmitEvent<Record<string, any>>) {
-    const data = form.values as typeof logindata;
-    
-    request.post("/account/login", data)
-    .then(res => {
-        if (res.data.success) {
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('token', res.data.data.token);
-            router.push('/');
-        } else {
-            errorMessage.value = res.data.message || '登录失败';
-            showError.value = true;
-        }
-    })
-    .catch(err => {
-        console.error('登录失败:', err);
-        errorMessage.value = '登录失败，请检查网络连接';
-        showError.value = true;
-    });
+	const data = form.values as typeof logindata;
+
+	request
+		.post('/account/login', data)
+		.then((res) => {
+			if (res.data.success) {
+				localStorage.setItem('username', data.username);
+				localStorage.setItem('token', res.data.data.token);
+				router.push('/');
+			} else {
+				errorMessage.value = res.data.message || '登录失败';
+				showError.value = true;
+			}
+		})
+		.catch((err) => {
+			console.error('登录失败:', err);
+			errorMessage.value = '登录失败，请检查网络连接';
+			showError.value = true;
+		});
 }
 </script>
 

@@ -145,7 +145,12 @@
 
 <script setup lang="ts">
 import Banner from '@/components/Banner.vue';
-import { getClasses, getEvaluationStats, getEvaluations, addEvaluation } from '@/utils/api';
+import {
+	getClasses,
+	getEvaluationStats,
+	getEvaluations,
+	addEvaluation,
+} from '@/utils/api';
 import { ref, onMounted, reactive, computed } from 'vue';
 import { BannerType } from '@/components/Banner.vue';
 import Card from 'primevue/card';
@@ -155,32 +160,32 @@ import TabPanel from 'primevue/tabpanel';
 import Rating from 'primevue/rating';
 import Button from 'primevue/button';
 import Textarea from 'primevue/textarea';
-import VChart from "vue-echarts";
+import VChart from 'vue-echarts';
 
 interface Course {
-    id: string;
-    name: string;
-    category: string;
-    description: string;
-    teacher: string;
+	id: string;
+	name: string;
+	category: string;
+	description: string;
+	teacher: string;
 }
 
 interface Evaluation {
-    id: string;
-    user: string;
-    cls: string;
-    score: number;
-    comment: string;
+	id: string;
+	user: string;
+	cls: string;
+	score: number;
+	comment: string;
 }
 
 interface CourseStats {
-    count: number;
-    average: number;
-    max: number;
-    min: number;
-    class_id: string;
-    class_name: string;
-    distribution: {[key: string]: number};
+	count: number;
+	average: number;
+	max: number;
+	min: number;
+	class_id: string;
+	class_name: string;
+	distribution: { [key: string]: number };
 }
 
 const courses = ref<Course[]>([]);
@@ -188,13 +193,13 @@ const selectedCourse = ref<Course | null>(null);
 const courseDetailsVisible = ref(false);
 const evaluations = ref<Evaluation[]>([]);
 const courseStats = reactive<CourseStats>({
-    count: 0,
-    average: 0,
-    max: 0,
-    min: 0,
-    class_id: '',
-    class_name: '',
-    distribution: {}
+	count: 0,
+	average: 0,
+	max: 0,
+	min: 0,
+	class_id: '',
+	class_name: '',
+	distribution: {},
 });
 
 const userType = ref(localStorage.getItem('user_type'));
@@ -203,172 +208,178 @@ const isStudent = computed(() => userType.value === 'student');
 const showAddEvaluationForm = ref(false);
 const submitting = ref(false);
 const newEvaluation = reactive({
-    score: 5,
-    comment: ''
+	score: 5,
+	comment: '',
 });
 
 const chartOption = computed(() => {
-    const data = [
-        courseStats.distribution['1'] || 0,
-        courseStats.distribution['2'] || 0,
-        courseStats.distribution['3'] || 0,
-        courseStats.distribution['4'] || 0,
-        courseStats.distribution['5'] || 0
-    ];
-    
-    return {
-        title: {
-            text: '评分分布',
-            left: 'center',
-            textStyle: {
-                fontSize: 14,
-                color: '#6c757d'
-            }
-        },
-        tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-                type: 'shadow'
-            }
-        },
-        grid: {
-            left: '3%',
-            right: '4%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            data: ['1分', '2分', '3分', '4分', '5分'],
-            axisTick: {
-                alignWithLabel: true
-            }
-        },
-        yAxis: {
-            type: 'value',
-            minInterval: 1
-        },
-        series: [
-            {
-                name: '评价数',
-                type: 'bar',
-                barWidth: '60%',
-                data: data,
-                itemStyle: {
-                    color: '#60a5fa'
-                }
-            }
-        ]
-    };
+	const data = [
+		courseStats.distribution['1'] || 0,
+		courseStats.distribution['2'] || 0,
+		courseStats.distribution['3'] || 0,
+		courseStats.distribution['4'] || 0,
+		courseStats.distribution['5'] || 0,
+	];
+
+	return {
+		title: {
+			text: '评分分布',
+			left: 'center',
+			textStyle: {
+				fontSize: 14,
+				color: '#6c757d',
+			},
+		},
+		tooltip: {
+			trigger: 'axis',
+			axisPointer: {
+				type: 'shadow',
+			},
+		},
+		grid: {
+			left: '3%',
+			right: '4%',
+			bottom: '3%',
+			containLabel: true,
+		},
+		xAxis: {
+			type: 'category',
+			data: ['1分', '2分', '3分', '4分', '5分'],
+			axisTick: {
+				alignWithLabel: true,
+			},
+		},
+		yAxis: {
+			type: 'value',
+			minInterval: 1,
+		},
+		series: [
+			{
+				name: '评价数',
+				type: 'bar',
+				barWidth: '60%',
+				data: data,
+				itemStyle: {
+					color: '#60a5fa',
+				},
+			},
+		],
+	};
 });
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    type: BannerType.Success,
-    duration: 3000
+	message: '',
+	show: false,
+	type: BannerType.Success,
+	duration: 3000,
 });
 
 const openCourseDetails = async (course: Course) => {
-    selectedCourse.value = course;
-    courseDetailsVisible.value = true;
-    
-    try {
-        const evalResponse = await getEvaluations({ class_id: course.id });
-        if (evalResponse.success) {
-            evaluations.value = evalResponse.data;
-        }
-        
-        const statsResponse = await getEvaluationStats({ class_id: course.id });
-        if (statsResponse.success) {
-            Object.assign(courseStats, statsResponse.data);
-        }
-    } catch (err: any) {
-        bannerInfo.value.message = err.message;
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    }
+	selectedCourse.value = course;
+	courseDetailsVisible.value = true;
+
+	try {
+		const evalResponse = await getEvaluations({ class_id: course.id });
+		if (evalResponse.success) {
+			evaluations.value = evalResponse.data;
+		}
+
+		const statsResponse = await getEvaluationStats({ class_id: course.id });
+		if (statsResponse.success) {
+			Object.assign(courseStats, statsResponse.data);
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message;
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	}
 };
 
 const resetForm = () => {
-    newEvaluation.score = 5;
-    newEvaluation.comment = '';
+	newEvaluation.score = 5;
+	newEvaluation.comment = '';
 };
 
 const submitEvaluation = async () => {
-    if (!selectedCourse.value) return;
-    
-    if (newEvaluation.score < 1 || newEvaluation.score > 5) {
-        bannerInfo.value.message = '评分必须在1-5之间';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-        return;
-    }
-    
-    if (!newEvaluation.comment.trim()) {
-        bannerInfo.value.message = '请输入评价内容';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-        return;
-    }
-    
-    submitting.value = true;
-    
-    try {
-        const response = await addEvaluation({
-            cls: selectedCourse.value.name,
-            score: newEvaluation.score,
-            comment: newEvaluation.comment
-        });
-        
-        if (response.success) {
-            bannerInfo.value.message = '评价提交成功';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Success;
-            showAddEvaluationForm.value = false;
-            resetForm();
-            
-            const evalResponse = await getEvaluations({ class_id: selectedCourse.value.id });
-            if (evalResponse.success) {
-                evaluations.value = evalResponse.data;
-            }
-            
-            const statsResponse = await getEvaluationStats({ class_id: selectedCourse.value.id });
-            if (statsResponse.success) {
-                Object.assign(courseStats, statsResponse.data);
-            }
-        } else {
-            if (response.message === "Evaluation already exists.") {
-                bannerInfo.value.message = '您已经评价过这门课程';
-            } else {
-                bannerInfo.value.message = response.message || '评价提交失败';
-            }
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    } catch (err: any) {
-        bannerInfo.value.message = err.message || '评价提交失败';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    } finally {
-        submitting.value = false;
-    }
+	if (!selectedCourse.value) return;
+
+	if (newEvaluation.score < 1 || newEvaluation.score > 5) {
+		bannerInfo.value.message = '评分必须在1-5之间';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	if (!newEvaluation.comment.trim()) {
+		bannerInfo.value.message = '请输入评价内容';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	submitting.value = true;
+
+	try {
+		const response = await addEvaluation({
+			cls: selectedCourse.value.name,
+			score: newEvaluation.score,
+			comment: newEvaluation.comment,
+		});
+
+		if (response.success) {
+			bannerInfo.value.message = '评价提交成功';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Success;
+			showAddEvaluationForm.value = false;
+			resetForm();
+
+			const evalResponse = await getEvaluations({
+				class_id: selectedCourse.value.id,
+			});
+			if (evalResponse.success) {
+				evaluations.value = evalResponse.data;
+			}
+
+			const statsResponse = await getEvaluationStats({
+				class_id: selectedCourse.value.id,
+			});
+			if (statsResponse.success) {
+				Object.assign(courseStats, statsResponse.data);
+			}
+		} else {
+			if (response.message === 'Evaluation already exists.') {
+				bannerInfo.value.message = '您已经评价过这门课程';
+			} else {
+				bannerInfo.value.message = response.message || '评价提交失败';
+			}
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message || '评价提交失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		submitting.value = false;
+	}
 };
 
 onMounted(() => {
-    getClasses({}).then(res => {
-        if (res.success) {
-            courses.value = res.data;
-        } else {
-            bannerInfo.value.message = res.message;
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    }).catch(err => {
-        bannerInfo.value.message = err.message;
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    });
+	getClasses({})
+		.then((res) => {
+			if (res.success) {
+				courses.value = res.data;
+			} else {
+				bannerInfo.value.message = res.message;
+				bannerInfo.value.show = true;
+				bannerInfo.value.type = BannerType.Error;
+			}
+		})
+		.catch((err) => {
+			bannerInfo.value.message = err.message;
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		});
 });
 </script>
 

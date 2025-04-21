@@ -65,11 +65,11 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 
 interface Evaluation {
-    id: string;
-    user: string;
-    cls: string;
-    score: number;
-    comment: string;
+	id: string;
+	user: string;
+	cls: string;
+	score: number;
+	comment: string;
 }
 
 const evaluations = ref<Evaluation[]>([]);
@@ -79,69 +79,71 @@ const deleting = ref(false);
 const selectedEvaluation = ref<Evaluation | null>(null);
 
 const bannerInfo = ref({
-    message: '',
-    show: false,
-    duration: 3000,
-    type: BannerType.Success
+	message: '',
+	show: false,
+	duration: 3000,
+	type: BannerType.Success,
 });
 
 const fetchEvaluations = async () => {
-    try {
-        loading.value = true;
-        const response = await getEvaluations({
-            user_name: localStorage.getItem('username') ?? ''
-        });
-        if (response.success) {
-            evaluations.value = response.data;
-        } else {
-            bannerInfo.value.message = response.message || '获取评价失败';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    } catch (error: any) {
-        bannerInfo.value.message = error.message || '获取评价失败';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    } finally {
-        loading.value = false;
-    }
+	try {
+		loading.value = true;
+		const response = await getEvaluations({
+			user_name: localStorage.getItem('username') ?? '',
+		});
+		if (response.success) {
+			evaluations.value = response.data;
+		} else {
+			bannerInfo.value.message = response.message || '获取评价失败';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (error: any) {
+		bannerInfo.value.message = error.message || '获取评价失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		loading.value = false;
+	}
 };
 
 const confirmDelete = (evaluation: Evaluation) => {
-    selectedEvaluation.value = evaluation;
-    deleteDialogVisible.value = true;
+	selectedEvaluation.value = evaluation;
+	deleteDialogVisible.value = true;
 };
 
 const deleteEvaluationConfirmed = async () => {
-    if (!selectedEvaluation.value) return;
-    
-    try {
-        deleting.value = true;
-        const response = await deleteEvaluation(selectedEvaluation.value.id);
-        
-        if (response.success) {
-            bannerInfo.value.message = '评价已成功删除';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Success;
-            
-            evaluations.value = evaluations.value.filter(e => e.id !== selectedEvaluation.value?.id);
-        } else {
-            bannerInfo.value.message = response.message || '删除评价失败';
-            bannerInfo.value.show = true;
-            bannerInfo.value.type = BannerType.Error;
-        }
-    } catch (error: any) {
-        bannerInfo.value.message = error.message || '删除评价失败';
-        bannerInfo.value.show = true;
-        bannerInfo.value.type = BannerType.Error;
-    } finally {
-        deleting.value = false;
-        deleteDialogVisible.value = false;
-    }
+	if (!selectedEvaluation.value) return;
+
+	try {
+		deleting.value = true;
+		const response = await deleteEvaluation(selectedEvaluation.value.id);
+
+		if (response.success) {
+			bannerInfo.value.message = '评价已成功删除';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Success;
+
+			evaluations.value = evaluations.value.filter(
+				(e) => e.id !== selectedEvaluation.value?.id,
+			);
+		} else {
+			bannerInfo.value.message = response.message || '删除评价失败';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (error: any) {
+		bannerInfo.value.message = error.message || '删除评价失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		deleting.value = false;
+		deleteDialogVisible.value = false;
+	}
 };
 
 onMounted(() => {
-    fetchEvaluations();
+	fetchEvaluations();
 });
 </script>
 

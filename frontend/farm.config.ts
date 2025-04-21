@@ -1,28 +1,26 @@
-import { defineConfig } from "@farmfe/core";
-import vue from "unplugin-vue/rollup";
-import path from "node:path";
+import { defineConfig } from '@farmfe/core';
+import vue from 'unplugin-vue/rollup';
+import path from 'node:path';
 
 export default defineConfig({
-	vitePlugins: [
-		vue(),
-	],
+	vitePlugins: [vue()],
 	compilation: {
 		output: {
-			path: "../dist",
+			path: '../dist',
 		},
 		resolve: {
 			alias: {
-				"@": path.join(process.cwd(), "src"),
+				'@': path.join(process.cwd(), 'src'),
 			},
 		},
 	},
-	plugins: ["@farmfe/plugin-sass"],
+	plugins: ['@farmfe/plugin-sass'],
 	server: {
 		proxy: {
-			"/api": {
+			'/api': {
 				target: process.env.FARM_API_BASE_URL,
 				changeOrigin: true,
-				pathRewrite: (path: string) => path.replace(/^\/api/, ""),
+				pathRewrite: (path: string) => path.replace(/^\/api/, ''),
 			},
 		},
 	},

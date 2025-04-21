@@ -6,9 +6,9 @@ import { onMounted } from 'vue';
 import router from '@/router';
 
 onMounted(() => {
-  setTimeout(() => {
-    router.push('/courses');
-  }, 100);
+	setTimeout(() => {
+		router.push('/courses');
+	}, 100);
 });
 </script>
 

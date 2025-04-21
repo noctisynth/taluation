@@ -127,27 +127,30 @@ const name = localStorage.getItem('username');
 const handleLogout = () => logout();
 
 onMounted(() => {
-  const userType = localStorage.getItem('user_type');
-  if (userType) {
-    type.value = userType;
-  } else {
-    request.get('/account', {
-      params: {
-        name
-      }
-    }).then(res => {
-      if (res.data.success) {
-        type.value = res.data.data.type;
-        localStorage.setItem('user_type', type.value);
-      } else {
-        logout();
-        type.value = 'none';
-      }
-    }).catch(_ => {
-      logout();
-      type.value = 'none';
-    });
-  }
+	const userType = localStorage.getItem('user_type');
+	if (userType) {
+		type.value = userType;
+	} else {
+		request
+			.get('/account', {
+				params: {
+					name,
+				},
+			})
+			.then((res) => {
+				if (res.data.success) {
+					type.value = res.data.data.type;
+					localStorage.setItem('user_type', type.value);
+				} else {
+					logout();
+					type.value = 'none';
+				}
+			})
+			.catch((_) => {
+				logout();
+				type.value = 'none';
+			});
+	}
 });
 </script>
 
