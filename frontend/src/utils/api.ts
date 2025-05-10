@@ -1,7 +1,7 @@
 import router from '@/router';
 import request from './request';
 
-export function logout(needRequest: boolean = true) {
+export function logout(needRequest = true) {
 	const token = localStorage.getItem('token');
 	const username = localStorage.getItem('username');
 
@@ -23,6 +23,7 @@ export function logout(needRequest: boolean = true) {
 		router.push('/login');
 	}
 
+	localStorage.removeItem('user_type');
 	localStorage.removeItem('token');
 	localStorage.removeItem('username');
 }

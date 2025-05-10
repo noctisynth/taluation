@@ -4,7 +4,10 @@
         
         <div class="page-header">
             <h2 class="page-title">课程管理</h2>
-            <div class="courses-summary" v-if="courses.length > 0">共 {{ courses.length }} 门课程</div>
+            <div class="actions">
+                <div class="courses-summary" v-if="courses.length > 0">共 {{ courses.length }} 门课程</div>
+                <Button label="添加课程" icon="pi pi-plus" class="" @click="openAddCourseDialog" />
+            </div>
         </div>
         
         <DataTable :value="courses" 
@@ -89,11 +92,36 @@
                 <Button label="删除" icon="pi pi-trash" class="p-button-danger" @click="confirmDeleteCourse" :loading="deleting" />
             </template>
         </Dialog>
+
+        <Dialog v-model:visible="addCourseVisible" modal header="添加新课程" :style="{width: '500px'}" class="course-form-dialog">
+            <div class="course-form">
+                <div class="form-field">
+                    <label for="courseName">课程名称</label>
+                    <InputText id="courseName" v-model="newCourse.name" class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label for="courseCategory">课程分类</label>
+                    <InputText id="courseCategory" v-model="newCourse.category" class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label for="courseCategory">教师名称</label>
+                    <InputText id="courseCategory" v-model="newCourse.teacher" class="w-full" />
+                </div>
+                <div class="form-field">
+                    <label for="courseDescription">课程描述</label>
+                    <Textarea id="courseDescription" v-model="newCourse.description" rows="5" class="w-full" />
+                </div>
+            </div>
+            <template #footer>
+                <Button label="取消" icon="pi pi-times" class="p-button-text" @click="addCourseVisible = false" />
+                <Button label="添加" icon="pi pi-check" :loading="submitting" @click="submitAddCourse" />
+            </template>
+        </Dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { getClasses, deleteClass, updateClass } from '@/utils/api';
+import { getClasses, deleteClass, updateClass, addClass } from '@/utils/api';
 import { ref, onMounted, reactive } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -245,6 +273,54 @@ const showBanner = (message: string, type: BannerType) => {
 	bannerInfo.value.type = type;
 	bannerInfo.value.show = true;
 };
+
+const newCourse = reactive({
+	name: '',
+	category: '',
+	description: '',
+	teacher: '',
+});
+
+const addCourseVisible = ref(false);
+const openAddCourseDialog = () => {
+	newCourse.name = '';
+	newCourse.category = '';
+	newCourse.description = '';
+	newCourse.teacher = '';
+	addCourseVisible.value = true;
+};
+
+const submitAddCourse = async () => {
+	if (!newCourse.name || !newCourse.category) {
+		bannerInfo.value.message = '课程名称和分类不能为空';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+		return;
+	}
+
+	submitting.value = true;
+	try {
+		const res = await addClass(newCourse);
+		if (res.success) {
+			bannerInfo.value.message = '课程添加成功';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Success;
+			addCourseVisible.value = false;
+
+			await loadCourses();
+		} else {
+			bannerInfo.value.message = res.message || '添加失败';
+			bannerInfo.value.show = true;
+			bannerInfo.value.type = BannerType.Error;
+		}
+	} catch (err: any) {
+		bannerInfo.value.message = err.message || '添加失败';
+		bannerInfo.value.show = true;
+		bannerInfo.value.type = BannerType.Error;
+	} finally {
+		submitting.value = false;
+	}
+};
 </script>
 
 <style scoped lang="scss">
@@ -315,6 +391,13 @@ const showBanner = (message: string, type: BannerType) => {
     display: flex;
     align-items: center;
     gap: 8px;
+
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .course-description {
