@@ -91,10 +91,24 @@
                                 <Dialog v-model:visible="showAddEvaluationForm" modal header="添加评价" :style="{width: '500px'}" class="add-evaluation-dialog">
                                     <div class="add-evaluation-form">
                                         <div class="form-field">
-                                            <label>评分</label>
+                                            <label>授课内容</label>
                                             <div class="rating-input">
-                                                <Rating v-model="newEvaluation.score" :cancel="false" />
-                                                <span class="rating-value">{{ newEvaluation.score }}/5</span>
+                                                <Rating v-model="newEvaluation.aScore" :cancel="false" />
+                                                <span class="rating-value">{{ newEvaluation.aScore }}/5</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>授课质量</label>
+                                            <div class="rating-input">
+                                                <Rating v-model="newEvaluation.bScore" :cancel="false" />
+                                                <span class="rating-value">{{ newEvaluation.bScore }}/5</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-field">
+                                            <label>教学态度</label>
+                                            <div class="rating-input">
+                                                <Rating v-model="newEvaluation.cScore" :cancel="false" />
+                                                <span class="rating-value">{{ newEvaluation.cScore }}/5</span>
                                             </div>
                                         </div>
                                         <div class="form-field">
@@ -208,7 +222,9 @@ const isStudent = computed(() => userType.value === 'student');
 const showAddEvaluationForm = ref(false);
 const submitting = ref(false);
 const newEvaluation = reactive({
-	score: 5,
+	aScore: 5,
+    bScore: 5,
+    cScore: 5,
 	comment: '',
 });
 
@@ -300,14 +316,16 @@ const openCourseDetails = async (course: Course) => {
 };
 
 const resetForm = () => {
-	newEvaluation.score = 5;
+	newEvaluation.aScore = 5;
+	newEvaluation.bScore = 5;
+    newEvaluation.cScore = 5;
 	newEvaluation.comment = '';
 };
 
 const submitEvaluation = async () => {
 	if (!selectedCourse.value) return;
 
-	if (newEvaluation.score < 1 || newEvaluation.score > 5) {
+	if (newEvaluation.aScore < 1 || newEvaluation.aScore > 5) {
 		bannerInfo.value.message = '评分必须在1-5之间';
 		bannerInfo.value.show = true;
 		bannerInfo.value.type = BannerType.Error;
@@ -326,7 +344,7 @@ const submitEvaluation = async () => {
 	try {
 		const response = await addEvaluation({
 			cls: selectedCourse.value.name,
-			score: newEvaluation.score,
+			score: Number(((newEvaluation.aScore + newEvaluation.bScore + newEvaluation.cScore) / 3).toFixed(1)),
 			comment: newEvaluation.comment,
 		});
 
