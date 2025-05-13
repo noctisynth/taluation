@@ -14,11 +14,9 @@ const changeAnnounce = async () => {
    const response = await addAnnounce(announce.value)
     if (response.status === 200) {
          showDialog.value = false
-         announce.value = response.data || ''
     } else {
          console.error('Failed to update announcement:', response.statusText)
     }
-    showDialog.value = false
 }
 
 const announce = ref('')
