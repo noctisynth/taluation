@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from pydantic import BaseModel
+
 from app import routes
 from app.db import db
 from app.utils.auth import AuthMiddleware
@@ -19,7 +21,8 @@ async def lifespan(_: FastAPI):
     except Exception as e:
         logger.error(f"Error connecting to database: {e}")
     finally:
-        await db.close()
+        if db.close:
+            await db.close()
 
 
 app = FastAPI(
@@ -38,11 +41,32 @@ app.add_middleware(
 
 app.add_middleware(
     AuthMiddleware,
-    exclude_paths=["/account/login", "/account/register", "/docs", "/openapi.json", "/redoc"]
+    exclude_paths=[
+        "/account/login",
+        "/account/register",
+        "/docs",
+        "/openapi.json",
+        "/redoc",
+    ],
 )
 
 app.include_router(routes.account, prefix="/account")
 app.include_router(routes.cls, prefix="/class")
 app.include_router(routes.evaluation, prefix="/evaluation")
+
+
+@app.get("/announce")
+async def getAnnounce():
+    return await db.query("RETURN $announce")
+
+
+class Announce(BaseModel):
+    announce: str
+
+
+@app.put("/announce")
+async def putAnnounce(data: Announce):
+    return await db.let("announce", data.announce)
+
 
 app.mount("/", StaticFiles(directory="dist", html=True), name="dist")

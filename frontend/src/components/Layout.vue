@@ -18,6 +18,10 @@
         </div>
         <div class="menu-group">
           <div class="menu-title">个人中心</div>
+          <router-link to="/announce" class="menu-item">
+            <i class="pi pi-list"></i>
+            <span>公告</span>
+          </router-link>
           <router-link to="/profile" class="menu-item">
             <i class="pi pi-user"></i>
             <span>个人信息</span>
@@ -47,6 +51,10 @@
         </div>
         <div class="menu-group">
           <div class="menu-title">个人中心</div>
+          <router-link to="/announce" class="menu-item">
+            <i class="pi pi-list"></i>
+            <span>公告</span>
+          </router-link>
           <router-link to="/profile" class="menu-item">
             <i class="pi pi-user"></i>
             <span>个人信息</span>
@@ -86,6 +94,13 @@
           <router-link to="/course-management" class="menu-item">
             <i class="pi pi-cog"></i>
             <span>课程管理</span>
+          </router-link>
+        </div>
+        <div class="menu-group">
+          <div class="menu-title">系统管理</div>
+          <router-link to="/announce" class="menu-item">
+            <i class="pi pi-list"></i>
+            <span>公告</span>
           </router-link>
         </div>
         <div class="menu-group">

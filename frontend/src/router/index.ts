@@ -46,6 +46,10 @@ const routes = [
 				path: '/course-management',
 				component: () => import('@/views/admin/CourseManagement.vue'),
 			},
+			{
+				path: '/announce',
+				component: () => import('@/views/common/Announce.vue'),
+			}
 		],
 	},
 	{

@@ -209,7 +209,25 @@ export async function deleteUser(username: string) {
 				username,
 			},
 		});
-		return res.data;
+		return res;
+	} catch (error) {
+		return error;
+	}
+}
+
+export async function getAnnounce(): any {
+	try {
+		const res = await request.get('/announce');
+		return res;
+	} catch (error) {
+		return error;
+	}
+}
+
+export async function addAnnounce(announce: string) {
+	try {
+		const res = await request.put('/announce', { announce });
+		return res;
 	} catch (error) {
 		return error;
 	}
