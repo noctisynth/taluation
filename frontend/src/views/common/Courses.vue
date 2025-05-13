@@ -281,15 +281,19 @@ const openCourseDetails = async (course: Course) => {
 	try {
 		const evalResponse = await getEvaluations({ class_id: course.id });
 		if (evalResponse.success) {
-			evaluations.value = evalResponse.data;
+            if (userType.value === 'student') {
+                evaluations.value = evalResponse.data.filter((item: Evaluation) => item.user === localStorage.getItem('username'));
+            } else {
+                evaluations.value = evalResponse.data;
+            }
 		}
 
 		const statsResponse = await getEvaluationStats({ class_id: course.id });
 		if (statsResponse.success) {
 			Object.assign(courseStats, statsResponse.data);
 		}
-	} catch (err: any) {
-		bannerInfo.value.message = err.message;
+	} catch (err: unknown) {
+		bannerInfo.value.message = (err as Error).message;
 		bannerInfo.value.show = true;
 		bannerInfo.value.type = BannerType.Error;
 	}
@@ -355,8 +359,8 @@ const submitEvaluation = async () => {
 			bannerInfo.value.show = true;
 			bannerInfo.value.type = BannerType.Error;
 		}
-	} catch (err: any) {
-		bannerInfo.value.message = err.message || '评价提交失败';
+	} catch (err: unknown) {
+		bannerInfo.value.message = (err as Error).message || '评价提交失败';
 		bannerInfo.value.show = true;
 		bannerInfo.value.type = BannerType.Error;
 	} finally {
