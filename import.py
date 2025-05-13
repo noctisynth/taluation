@@ -1,4 +1,5 @@
 import json
+import argon2
 from surrealdb import AsyncSurreal
 
 
@@ -8,15 +9,18 @@ async def surreal_import(table_name, input_file):
             await db.signin({"username": "root", "password": "root"})
             await db.use("main", "test")
 
-            with open(input_file, "r") as f:
+            with open(input_file, "r", encoding="utf-8") as f:
                 records = json.load(f)
 
             inserted = []
             for record in records:
                 if "id" in record:
-                    res = await db.create(
-                        record["id"], {k: v for k, v in record.items() if k != "id"}
-                    )
+                    data = {k: v for k, v in record.items() if k != "id"}
+                    if data.get("password"):
+                        data["password"] = argon2.hash_password(
+                            data["password"].encode(), salt=data["username"].encode()
+                        ).decode()
+                    res = await db.create(record["id"], data)
                     inserted.append(res)
                 else:
                     res = await db.create(table_name, record)
